@@ -337,7 +337,7 @@ export async function addTransactionAction(
 // 1b. Action: Add new Financial Transaction (with double-entry balance updates)
 export async function addFinancialTransactionAction(
   type: "INCOME" | "EXPENSE" | "ALLOCATION",
-  category: "Gaji" | "Bisnis" | "Lainnya" | "Kebutuhan Wajib" | "Keinginan" | "Dana Darurat" | "Bayar Utang" | "Investasi",
+  category: string,
   amount: number,
   description: string
 ): Promise<ActionResponse<{ xpGained: number; leveledUp: boolean; newLevel: number }>> {
@@ -384,8 +384,10 @@ export async function addFinancialTransactionAction(
     liquidSavings -= amount;
   } else if (type === "ALLOCATION") {
     liquidSavings -= amount;
-    if (category === "Dana Darurat") {
-      emergencyFundCurrent += amount;
+    // Kategori allocation yang mempengaruhi saldo
+    if (category === "Dana Darurat" || category === "Tabungan" || category === "Dana Pensiun" || category === "Dana Liburan" || category === "Dana Pembelian Besar" || category === "Dana Pendidikan Anak") {
+      // Dana darurat dan tabungan tidak mempengaruhi saldo cair, tetapi mengalihkan alokasi
+      // Untuk saat ini, kita anggap tidak perlu update saldo cair
     } else if (category === "Bayar Utang") {
       totalDebt = Math.max(0, totalDebt - amount);
     } else if (category === "Investasi") {

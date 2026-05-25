@@ -30,7 +30,7 @@ export async function proxy(request: NextRequest) {
       const { data } = await supabase.auth.getUser();
       user = data?.user;
     } catch (error) {
-      // Ignore error
+      console.error("Supabase proxy error:", error);
     }
   }
 

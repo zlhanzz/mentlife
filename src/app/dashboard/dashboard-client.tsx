@@ -15,6 +15,8 @@ import FinanceTab from "./finance-tab";
 import CareerTab from "./career-tab";
 import { evaluateFinancialLadder, getCurrencyConfig, getFinancialMode, getCashflowHealth } from "@/services/financial-ladder";
 import { ProfileData, FinancialProfileData, UsersCoreData } from "@/types/profile";
+import SupabaseHealthCheck from "@/components/supabase-health-check";
+import SupabaseConnectionStatus from "@/components/supabase-connection-status";
 
 interface DashboardClientProps {
   profile: ProfileData;
@@ -758,6 +760,11 @@ export default function DashboardClient({ profile, finance, usersCore, aiRecs, i
           </button>
         ))}
       </nav>
+
+      {/* Supabase Connection Status */}
+      <div className="px-4 py-2">
+        <SupabaseConnectionStatus />
+      </div>
     </div>
   );
 }

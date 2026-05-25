@@ -108,3 +108,50 @@ export async function logoutAction(): Promise<void> {
   await supabase.auth.signOut();
   redirect("/login");
 }
+
+// Google OAuth Actions
+export async function loginWithGoogleAction(): Promise<never> {
+  const supabase = await createClient();
+  
+  // Redirect to Google OAuth
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+      },
+    },
+  });
+  
+  if (error) {
+    console.error('Google login error:', error);
+    redirect('/login?error=google_failed');
+  }
+  
+  // Supabase will redirect to the callback URL
+  redirect(data.url);
+}
+
+export async function registerWithGoogleAction(): Promise<never> {
+  const supabase = await createClient();
+  
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+      },
+    },
+  });
+  
+  if (error) {
+    console.error('Google register error:', error);
+    redirect('/register?error=google_failed');
+  }
+  
+  redirect(data.url);
+}

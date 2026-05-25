@@ -95,7 +95,7 @@ export default function FinanceTab({
   // Handle transaction addition from FinanceDashboard modal
   const handleAddTransaction = async (
     type: "INCOME" | "EXPENSE" | "ALLOCATION",
-    category: "Gaji" | "Bisnis" | "Lainnya" | "Kebutuhan Wajib" | "Keinginan" | "Dana Darurat" | "Bayar Utang" | "Investasi",
+    category: string,
     amount: number,
     description: string
   ) => {
