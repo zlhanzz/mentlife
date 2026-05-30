@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Plus, Wallet, PieChart, History, ArrowUpCircle, ArrowDownCircle, ArrowLeftRight, X, BrainCircuit, RefreshCw, ShieldCheck, CreditCard, BarChart4, TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { calculateLadderLevel, isFeatureLocked } from "@/lib/finance-logic";
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, ALLOCATION_CATEGORIES } from "@/lib/finance-categories";
 
 // --- ANALYTICS DASHBOARD ---
 const AnalyticsDashboard = ({ financeData, transactions }: any) => {
@@ -28,17 +30,24 @@ const AnalyticsDashboard = ({ financeData, transactions }: any) => {
   );
 };
 
-// --- MODAL TRANSAKSI (LENGKAP) ---
-const TransactionModal = ({ isOpen, onClose, onAddTransaction, financeData }: any) => {
+// --- MODAL TRANSAKSI ---
+const TransactionModal = ({ isOpen, onClose, onAddTransaction }: any) => {
   const [step, setStep] = useState<"SELECT" | "FORM">("SELECT");
   const [type, setType] = useState<"INCOME" | "EXPENSE" | "ALLOCATION" | null>(null);
   const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState("Needs");
+  const [mainGroup, setMainGroup] = useState<"Needs" | "Wants" | "Business">("Needs");
+  const [selectedCat, setSelectedCat] = useState("");
   const [desc, setDesc] = useState("");
 
+  const getOptions = () => {
+    if (type === "INCOME") return INCOME_CATEGORIES;
+    if (type === "ALLOCATION") return ALLOCATION_CATEGORIES;
+    return EXPENSE_CATEGORIES[mainGroup];
+  };
+
   const handleSave = async () => {
-    if (!amount) return;
-    await onAddTransaction(type, category, Number(amount), desc);
+    if (!amount || !selectedCat) return;
+    await onAddTransaction(type, mainGroup, Number(amount), desc, selectedCat);
     onClose();
     setStep("SELECT");
     setAmount("");
@@ -56,22 +65,32 @@ const TransactionModal = ({ isOpen, onClose, onAddTransaction, financeData }: an
             {[ { id: "INCOME", label: "Masuk", icon: ArrowUpCircle }, { id: "EXPENSE", label: "Keluar", icon: ArrowDownCircle }, { id: "ALLOCATION", label: "Alokasi", icon: ArrowLeftRight } ].map((i) => (
               <button key={i.id} onClick={() => { setType(i.id as any); setStep("FORM"); }} className="p-4 bg-zinc-900 rounded-2xl flex flex-col items-center gap-2 hover:bg-zinc-800">
                 <i.icon className="w-6 h-6 text-primary" />
-                <span className="text-[9px] font-bold text-white">{i.label}</span>
+                <span className="text-[9px] font-bold text-white uppercase">{i.label}</span>
               </button>
             ))}
           </div>
         ) : (
-          <div className="space-y-4">
-            <h3 className="font-black text-white text-sm">Input {type}</h3>
+          <div className="space-y-4 animate-in slide-in-from-bottom-4">
+            <h3 className="font-black text-white text-sm uppercase tracking-widest">Input {type}</h3>
             <input type="number" className="w-full h-12 bg-zinc-900 rounded-xl px-4 text-white" placeholder="Nominal Rp" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            
             {type === "EXPENSE" && (
-              <select className="w-full h-10 bg-zinc-900 rounded-xl px-4 text-white text-xs" onChange={(e) => setCategory(e.target.value)}>
-                <option value="Needs">Needs (Wajib)</option>
-                <option value="Wants">Wants (Keinginan)</option>
-                <option value="Business">Business (Kerja)</option>
-              </select>
+              <div className="flex gap-2">
+                {(["Needs", "Wants", "Business"] as const).map(g => (
+                  <button key={g} onClick={() => setMainGroup(g)} className={cn("flex-1 py-2 text-[9px] font-bold rounded-lg border", mainGroup === g ? "bg-primary border-primary text-white" : "border-white/5 bg-zinc-900 text-zinc-500")}>{g}</button>
+                ))}
+              </div>
             )}
-            <button onClick={handleSave} className="w-full h-12 bg-primary rounded-xl font-bold text-white">Simpan</button>
+            
+            <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
+              {getOptions().map((cat: any) => (
+                <button key={cat.id} onClick={() => setSelectedCat(cat.id)} className={cn("flex items-center gap-2 p-2 rounded-lg text-[9px] font-bold border", selectedCat === cat.id ? "bg-zinc-800 border-primary" : "border-white/5 bg-zinc-900")}>
+                  {cat.icon} {cat.label}
+                </button>
+              ))}
+            </div>
+
+            <button onClick={handleSave} className="w-full h-12 bg-primary rounded-xl font-bold text-white">Simpan Transaksi</button>
           </div>
         )}
       </div>
@@ -83,13 +102,21 @@ export default function FinanceDashboard({ financeData, transactions = [], onAdd
   const [activeTab, setActiveTab] = useState<"summary" | "analytics" | "history">("summary");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Kalkulasi data riil untuk dashboard
+  const ladderLevel = calculateLadderLevel({
+    liquid_savings: financeData?.liquid_savings || 0,
+    total_debt: financeData?.total_debt || 0,
+    emergency_fund_current: financeData?.emergency_fund_current || 0,
+    emergency_fund_target: financeData?.emergency_fund_target || 0,
+    investment_value: financeData?.investment_value || 0,
+    monthly_expenses: financeData?.monthly_expenses || 0,
+  });
+
+  const isInvestmentLocked = isFeatureLocked(ladderLevel, 'INVESTMENT');
   const efProgress = financeData?.emergency_fund_target > 0 ? ((financeData.emergency_fund_current || 0) / financeData.emergency_fund_target) * 100 : 0;
-  const debtProgress = financeData?.total_debt > 0 ? (financeData.total_debt_paid / financeData.total_debt) * 100 : 100;
+  const debtProgress = financeData?.total_debt > 0 ? ((financeData.total_debt - (financeData.debt_paid || 0)) / financeData.total_debt) * 100 : 100;
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-24">
-      {/* HEADER NAV */}
       <div className="sticky top-0 z-30 px-4 py-3 bg-background/90 backdrop-blur border-b border-white/5">
         <div className="flex gap-2 p-1 bg-zinc-900 rounded-xl">
           {[ { id: "summary", label: "Ringkasan", icon: Wallet }, { id: "analytics", label: "Analitik", icon: PieChart }, { id: "history", label: "Riwayat", icon: History } ].map((tab) => (
@@ -103,13 +130,11 @@ export default function FinanceDashboard({ financeData, transactions = [], onAdd
       <div className="px-4 mt-6">
         {activeTab === "summary" && (
           <div className="space-y-4 animate-in fade-in duration-500">
-            {/* SISA KAS */}
             <div className="bg-zinc-900 p-6 rounded-3xl border border-white/5">
               <p className="text-[10px] font-bold text-zinc-500 uppercase">Sisa Kas</p>
               <h2 className="text-3xl font-black mt-1 text-white">Rp{financeData?.liquid_savings?.toLocaleString()}</h2>
             </div>
             
-            {/* PROGRESS CARDS */}
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-card p-4 rounded-2xl border border-white/5">
                 <ShieldCheck className="w-4 h-4 text-blue-500 mb-2" />
@@ -125,16 +150,15 @@ export default function FinanceDashboard({ financeData, transactions = [], onAdd
               </div>
             </div>
 
-            {/* INVESTASI & LEVEL */}
             <div className="grid grid-cols-2 gap-3">
-               <div className="bg-zinc-900 p-4 rounded-2xl border border-white/5">
+               <div className={cn("bg-zinc-900 p-4 rounded-2xl border border-white/5 transition-all", isInvestmentLocked && "opacity-50 grayscale")}>
                 <BarChart4 className="w-4 h-4 text-violet-500 mb-2" />
                 <p className="text-[9px] font-black text-zinc-500 uppercase">Investasi</p>
-                <p className="text-sm font-black text-white">Rp{financeData?.investment_value?.toLocaleString()}</p>
+                <p className="text-sm font-black text-white">{isInvestmentLocked ? "TERKUNCI" : `Rp${financeData?.investment_value?.toLocaleString()}`}</p>
               </div>
                <div className="bg-zinc-900 p-4 rounded-2xl border border-white/5">
                 <p className="text-[9px] font-black text-zinc-500 uppercase">Level Tangga</p>
-                <p className="text-sm font-black text-white">Level {financeData?.ladderLevel || 1}</p>
+                <p className="text-sm font-black text-white">Level {ladderLevel}</p>
               </div>
             </div>
           </div>
@@ -148,7 +172,10 @@ export default function FinanceDashboard({ financeData, transactions = [], onAdd
               <div key={tx.id} className="flex justify-between p-4 bg-card rounded-2xl border border-white/5">
                 <div className="flex items-center gap-3">
                   {tx.type === "INCOME" ? <TrendingUp className="w-4 h-4 text-emerald-500" /> : <TrendingDown className="w-4 h-4 text-rose-500" />}
-                  <span className="text-xs font-bold text-white">{tx.description}</span>
+                  <div>
+                    <p className="text-xs font-bold text-white">{tx.description}</p>
+                    <p className="text-[9px] text-zinc-500 uppercase">{tx.category}</p>
+                  </div>
                 </div>
                 <span className="text-xs font-black text-white">Rp{tx.amount.toLocaleString()}</span>
               </div>
@@ -161,7 +188,11 @@ export default function FinanceDashboard({ financeData, transactions = [], onAdd
         <Plus className="w-8 h-8" />
       </button>
 
-      <TransactionModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onAddTransaction={onAddTransaction} financeData={financeData} />
+      <TransactionModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onAddTransaction={onAddTransaction} 
+      />
     </div>
   );
 }
