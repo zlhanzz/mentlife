@@ -62,6 +62,7 @@ export interface FinancialProfileData {
   monthly_income: number;
   fixed_expenses: number;
   total_debt: number;
+  debt_paid?: number;
   debt_details?: string;
   liquid_savings: number;
   investment_value: number;

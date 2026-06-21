@@ -375,7 +375,7 @@ export async function addFinancialTransactionAction(
   // 2. Ambil data keuangan profil saat ini
   const { data: finProfile, error: profileFetchError } = await supabase
     .from("financial_profiles")
-    .select("liquid_savings, emergency_fund_current, total_debt, investment_value")
+    .select("liquid_savings, emergency_fund_current, total_debt, investment_value, debt_paid")
     .eq("id", user.id)
     .single();
 
@@ -387,6 +387,7 @@ export async function addFinancialTransactionAction(
   let emergencyFundCurrent = Number(finProfile.emergency_fund_current) || 0;
   let totalDebt = Number(finProfile.total_debt) || 0;
   let investmentValue = Number(finProfile.investment_value) || 0;
+  let debtPaid = Number(finProfile.debt_paid) || 0;
 
   // 3. Terapkan logika double-entry update
   if (type === "INCOME") {
@@ -400,6 +401,7 @@ export async function addFinancialTransactionAction(
       // Dana darurat dan tabungan dialokasikan dari kas cair
     } else if (category === "Pelunasan Utang" || category === "Bayar Utang") {
       totalDebt = Math.max(0, totalDebt - amount);
+      debtPaid += amount;
     } else if (category === "Investasi") {
       investmentValue += amount;
     }
@@ -414,6 +416,7 @@ export async function addFinancialTransactionAction(
       emergency_fund_current: emergencyFundCurrent,
       total_debt: totalDebt,
       investment_value: investmentValue,
+      debt_paid: debtPaid,
       current_stage: currentStage,
       updated_at: new Date().toISOString(),
     })

@@ -25,6 +25,7 @@ interface FinanceTabProps {
   monthlyIncome: number;
   fixedExpenses: number;
   totalDebt: number;
+  debtPaid?: number;
   debtDetails: string;
   emergencyFundCurrent: number;
   emergencyFundTarget: number;
@@ -39,6 +40,7 @@ export default function FinanceTab({
   monthlyIncome,
   fixedExpenses,
   totalDebt,
+  debtPaid = 0,
   debtDetails,
   emergencyFundCurrent,
   emergencyFundTarget,
@@ -57,6 +59,7 @@ export default function FinanceTab({
   const [liquid, setLiquid] = useState(liquidSavings);
   const [efCurrent, setEfCurrent] = useState(emergencyFundCurrent);
   const [debt, setDebt] = useState(totalDebt);
+  const [debtPaidState, setDebtPaid] = useState(debtPaid);
   const [invest, setInvest] = useState(investmentValue);
 
   // Synchronize state with props when props change
@@ -75,6 +78,10 @@ export default function FinanceTab({
   useEffect(() => {
     setDebt(totalDebt);
   }, [totalDebt]);
+
+  useEffect(() => {
+    setDebtPaid(debtPaid);
+  }, [debtPaid]);
 
   useEffect(() => {
     setInvest(investmentValue);
@@ -126,6 +133,7 @@ export default function FinanceTab({
           setEfCurrent(e => e + amount);
         } else if (category === "Pelunasan Utang" || category === "Bayar Utang") {
           setDebt(d => Math.max(0, d - amount));
+          setDebtPaid(d => d + amount);
         } else if (category === "Investasi") {
           setInvest(i => i + amount);
         }
@@ -165,6 +173,7 @@ export default function FinanceTab({
           emergency_fund_current: efCurrent,
           emergency_fund_target: emergencyFundTarget,
           total_debt: debt,
+          debt_paid: debtPaidState,
           investment_value: invest
         }}
         ladderLevel={ladderState.level}
