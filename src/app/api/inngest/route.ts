@@ -3,12 +3,9 @@ import { inngest } from "@/lib/inngest";
 import { extractDataFromChat, ChatExtractionResult } from "@/services/ai";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-// Define the background job function using any wrapper to prevent signature checking issues
-const createFn = inngest.createFunction.bind(inngest) as any;
-
-const extractChatDataJob = createFn(
-  { id: "extract-chat-data", name: "Extract Chat Data" },
-  { event: "chat/message.sent" },
+// Define the background job function
+const extractChatDataJob = inngest.createFunction(
+  { id: "extract-chat-data", name: "Extract Chat Data", triggers: { event: "chat/message.sent" } },
   async ({ event, step }: any) => {
     // Definisikan tipe event.data secara eksplisit karena inisialisasi generic minimal
     const { userId, content, chatHistory } = event.data as { userId: string; content: string; chatHistory: string[] };
