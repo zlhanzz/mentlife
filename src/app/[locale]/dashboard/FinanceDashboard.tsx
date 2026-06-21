@@ -767,17 +767,9 @@ export default function FinanceDashboard({ financeData, transactions = [], onAdd
     amount: number,
     description: string
   ) => {
+    // Delegate to parent (finance-tab.tsx) which handles server action + local state + router.refresh
+    // The transactions prop will update via useEffect sync, avoiding duplicate entries
     const res = await onAddTransaction(type, category, amount, description);
-    const newTx = {
-      id: `tx-user-${Date.now()}`,
-      type,
-      category,
-      amount,
-      description: description || "",
-      created_at: new Date().toISOString(),
-      date: new Date().toISOString().split("T")[0]
-    };
-    setLocalTransactions(prev => [newTx, ...prev]);
     return res;
   };
 

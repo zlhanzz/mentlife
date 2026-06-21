@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { addFinancialTransactionAction } from "@/features/dashboard/actions";
 import { useApp } from "@/context/app-context";
@@ -48,6 +49,7 @@ export default function FinanceTab({
 }: FinanceTabProps) {
   const { lang } = useApp();
   const tDash = useTranslations("dashboard");
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   // Local state for instant feedback and synchronization
@@ -113,7 +115,7 @@ export default function FinanceTab({
       };
       setTxs(p => [newTx, ...p]);
 
-      // Apply double-entry math updates locally
+      // Apply double-entry math updates locally for instant feedback
       if (type === "INCOME") {
         setLiquid(l => l + amount);
       } else if (type === "EXPENSE") {
@@ -128,6 +130,9 @@ export default function FinanceTab({
           setInvest(i => i + amount);
         }
       }
+
+      // Refresh server data so parent props stay in sync after DB update
+      router.refresh();
     }
     return res;
   };
