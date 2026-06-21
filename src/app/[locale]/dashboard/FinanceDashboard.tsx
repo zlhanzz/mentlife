@@ -599,8 +599,19 @@ export default function FinanceDashboard({ financeData, transactions = [], onAdd
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"INCOME" | "EXPENSE" | "ALLOCATION" | null>(null);
 
-  // Time Period Filter State ("this_month" | "last_month" | "2026" | "2025" | "2024")
-  const [timeFilter, setTimeFilter] = useState<"this_month" | "last_month" | "2026" | "2025" | "2024">("this_month");
+  // Dynamic current date references
+  const now = new Date();
+  const currentYear = now.getFullYear().toString();
+  const currentMonth = String(now.getMonth() + 1).padStart(2, "0");
+  const prevMonth = now.getMonth() === 0 ? "12" : String(now.getMonth()).padStart(2, "0");
+  const prevMonthYear = now.getMonth() === 0 ? String(now.getFullYear() - 1) : currentYear;
+  const monthNames = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+  const monthNamesEn = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const currentMonthName = lang === "id" ? monthNames[now.getMonth()] : monthNamesEn[now.getMonth()];
+  const prevMonthName = lang === "id" ? monthNames[now.getMonth() === 0 ? 11 : now.getMonth() - 1] : monthNamesEn[now.getMonth() === 0 ? 11 : now.getMonth() - 1];
+
+  // Time Period Filter State ("this_month" | "last_month" | year strings)
+  const [timeFilter, setTimeFilter] = useState<string>("this_month");
 
   // Custom Categories State managed dynamically with localStorage persistence
   const [customCategories, setCustomCategories] = useState<{
@@ -733,20 +744,20 @@ export default function FinanceDashboard({ financeData, transactions = [], onAdd
     }
   }, [transactions]);
 
-  // Date Filtering Logic
+  // Date Filtering Logic (dynamic based on current date)
   const filteredTransactions = localTransactions.filter((tx: any) => {
     const txDateStr = tx.date || tx.created_at || "";
     if (!txDateStr) return true;
     
-    const year = txDateStr.substring(0, 4);
-    const month = txDateStr.substring(5, 7);
+    const txYear = txDateStr.substring(0, 4);
+    const txMonth = txDateStr.substring(5, 7);
 
     if (timeFilter === "this_month") {
-      return year === "2026" && month === "05";
+      return txYear === currentYear && txMonth === currentMonth;
     } else if (timeFilter === "last_month") {
-      return year === "2026" && month === "04";
+      return txYear === prevMonthYear && txMonth === prevMonth;
     } else {
-      return year === timeFilter;
+      return txYear === timeFilter;
     }
   });
 
@@ -908,11 +919,11 @@ export default function FinanceDashboard({ financeData, transactions = [], onAdd
               onChange={(e) => setTimeFilter(e.target.value as any)}
               className="bg-zinc-950 border border-white/10 rounded-xl px-3 py-1.5 text-[10px] font-extrabold text-white focus:outline-none focus:border-primary cursor-pointer transition-colors"
             >
-              <option value="this_month" className="bg-zinc-950">{lang === "id" ? "Bulan Ini (Mei 2026)" : "This Month (May 2026)"}</option>
-              <option value="last_month" className="bg-zinc-950">{lang === "id" ? "Bulan Lalu (April 2026)" : "Last Month (Apr 2026)"}</option>
-              <option value="2026" className="bg-zinc-950">{lang === "id" ? "Tahun 2026" : "Year 2026"}</option>
-              <option value="2025" className="bg-zinc-950">{lang === "id" ? "Tahun 2025" : "Year 2025"}</option>
-              <option value="2024" className="bg-zinc-950">{lang === "id" ? "Tahun 2024" : "Year 2024"}</option>
+              <option value="this_month" className="bg-zinc-950">{lang === "id" ? `Bulan Ini (${currentMonthName} ${currentYear})` : `This Month (${currentMonthName} ${currentYear})`}</option>
+              <option value="last_month" className="bg-zinc-950">{lang === "id" ? `Bulan Lalu (${prevMonthName} ${prevMonthYear})` : `Last Month (${prevMonthName} ${prevMonthYear})`}</option>
+              <option value={currentYear} className="bg-zinc-950">{lang === "id" ? `Tahun ${currentYear}` : `Year ${currentYear}`}</option>
+              <option value={String(Number(currentYear) - 1)} className="bg-zinc-950">{lang === "id" ? `Tahun ${Number(currentYear) - 1}` : `Year ${Number(currentYear) - 1}`}</option>
+              <option value={String(Number(currentYear) - 2)} className="bg-zinc-950">{lang === "id" ? `Tahun ${Number(currentYear) - 2}` : `Year ${Number(currentYear) - 2}`}</option>
             </select>
           </div>
         </div>
