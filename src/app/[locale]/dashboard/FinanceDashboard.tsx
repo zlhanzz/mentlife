@@ -338,6 +338,8 @@ const TransactionModal = ({ isOpen, onClose, onAddTransaction, defaultType, cust
   const [editingCatId, setEditingCatId] = useState<string | null>(null);
   const [editCatName, setEditCatName] = useState("");
   const [editCatIcon, setEditCatIcon] = useState("🏷️");
+  const [saveError, setSaveError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const ICON_OPTIONS = ["🏷️", "💰", "🎯", "", "🚗", "", "🍔", "", "🎮", "", "✈️", "💊", "👕", "🎁", "⚡", "", "🐾", "️", "💼", ""];
 
@@ -354,6 +356,7 @@ const TransactionModal = ({ isOpen, onClose, onAddTransaction, defaultType, cust
       setNewCatName("");
       setAmount("");
       setDesc("");
+      setSaveError("");
     }
   }, [isOpen, defaultType]);
 
@@ -406,11 +409,23 @@ const TransactionModal = ({ isOpen, onClose, onAddTransaction, defaultType, cust
 
   const handleSave = async () => {
     if (!amount || !selectedCat) return;
-    await onAddTransaction(type, selectedCat, Number(amount), desc);
-    onClose();
-    setStep("SELECT");
-    setAmount("");
-    setDesc("");
+    setIsSaving(true);
+    setSaveError("");
+    try {
+      const res = await onAddTransaction(type, selectedCat, Number(amount), desc);
+      if (res && res.success) {
+        onClose();
+        setStep("SELECT");
+        setAmount("");
+        setDesc("");
+      } else {
+        setSaveError(res?.message || (lang === "id" ? "Gagal menyimpan transaksi." : "Failed to save transaction."));
+      }
+    } catch (err: any) {
+      setSaveError(err?.message || (lang === "id" ? "Terjadi kesalahan." : "An error occurred."));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -485,8 +500,14 @@ const TransactionModal = ({ isOpen, onClose, onAddTransaction, defaultType, cust
               onChange={(e) => setDesc(e.target.value)} 
             />
 
-            <button onClick={handleSave} className="w-full h-12 bg-primary rounded-xl font-bold text-white text-xs uppercase tracking-widest mt-2">
-              {lang === "id" ? "Simpan Transaksi" : "Save Transaction"}
+            {saveError && (
+              <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl">
+                <p className="text-[10px] font-bold text-rose-400">{saveError}</p>
+              </div>
+            )}
+
+            <button onClick={handleSave} disabled={isSaving} className="w-full h-12 bg-primary rounded-xl font-bold text-white text-xs uppercase tracking-widest mt-2 disabled:opacity-50">
+              {isSaving ? (lang === "id" ? "Menyimpan..." : "Saving...") : (lang === "id" ? "Simpan Transaksi" : "Save Transaction")}
             </button>
           </div>
         )}

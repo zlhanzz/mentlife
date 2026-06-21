@@ -213,8 +213,10 @@ CREATE POLICY "Users can update own users_core" ON users_core FOR UPDATE USING (
 CREATE POLICY "Users can insert own users_core" ON users_core FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- RLS Policies for financial_transactions
-CREATE POLICY "Users can read own transactions" ON financial_transactions FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "Users can insert own transactions" ON financial_transactions FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "Users can read own transactions" ON financial_transactions FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own transactions" ON financial_transactions FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own transactions" ON financial_transactions FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own transactions" ON financial_transactions FOR DELETE USING (auth.uid() = user_id);
 
 -- RLS Policies for tasks
 CREATE POLICY "Users can read own tasks" ON tasks FOR SELECT USING (auth.uid() = id);
