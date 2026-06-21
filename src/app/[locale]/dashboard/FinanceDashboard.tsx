@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useApp } from "@/context/app-context";
 import { calculateLadderLevel, isFeatureLocked } from "@/lib/finance-logic";
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, ALLOCATION_CATEGORIES } from "@/lib/finance-categories";
+import { AlertTriangle, Lock, ShieldAlert } from "lucide-react";
 import { RupiahInput } from "./FinanceProfileTab";
 
 // --- CUSTOM CATEGORY SELECT ---
@@ -326,7 +327,7 @@ const AnalyticsDashboard = ({ financeData, transactions, budgets = [], t, lang }
 };
 
 // --- MODAL TRANSAKSI ---
-const TransactionModal = ({ isOpen, onClose, onAddTransaction, defaultType, customCategories, onAddCustomCategory, onEditCustomCategory, onDeleteCustomCategory, lang }: any) => {
+const TransactionModal = ({ isOpen, onClose, onAddTransaction, defaultType, customCategories, onAddCustomCategory, onEditCustomCategory, onDeleteCustomCategory, lang, financeData }: any) => {
   const [step, setStep] = useState<"SELECT" | "FORM">("SELECT");
   const [type, setType] = useState<"INCOME" | "EXPENSE" | "ALLOCATION" | null>(null);
   const [amount, setAmount] = useState("");
@@ -340,6 +341,13 @@ const TransactionModal = ({ isOpen, onClose, onAddTransaction, defaultType, cust
   const [editCatIcon, setEditCatIcon] = useState("🏷️");
   const [saveError, setSaveError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  // Financial priority computation for allocation enforcement
+  const totalDebt = financeData?.total_debt || 0;
+  const efCurrent = financeData?.emergency_fund_current || 0;
+  const efTarget = financeData?.emergency_fund_target || 0;
+  const hasDebt = totalDebt > 0;
+  const emergencyFundMet = efTarget > 0 && efCurrent >= efTarget;
 
   const ICON_OPTIONS = ["🏷️", "💰", "🎯", "", "🚗", "", "🍔", "", "🎮", "", "✈️", "💊", "👕", "🎁", "⚡", "", "🐾", "️", "💼", ""];
 
@@ -363,7 +371,19 @@ const TransactionModal = ({ isOpen, onClose, onAddTransaction, defaultType, cust
   const getOptions = () => {
     let defaults: any[] = [];
     if (type === "INCOME") defaults = INCOME_CATEGORIES;
-    else if (type === "ALLOCATION") defaults = ALLOCATION_CATEGORIES;
+    else if (type === "ALLOCATION") {
+      // Apply financial ladder priority enforcement
+      if (hasDebt) {
+        // Level 1: Debt exists → ONLY debt payment allowed
+        defaults = ALLOCATION_CATEGORIES.filter(c => c.id === "utang");
+      } else if (!emergencyFundMet) {
+        // Level 2: No debt but emergency fund incomplete → Dana Darurat + Investasi
+        defaults = ALLOCATION_CATEGORIES.filter(c => c.id !== "utang");
+      } else {
+        // Level 3+: All options available
+        defaults = [...ALLOCATION_CATEGORIES];
+      }
+    }
     else defaults = EXPENSE_CATEGORIES[mainGroup || "Needs"] || [];
 
     const customs = (customCategories && type) ? (customCategories[type === "EXPENSE" ? (mainGroup || "Needs") : type] || []) : [];
@@ -453,6 +473,26 @@ const TransactionModal = ({ isOpen, onClose, onAddTransaction, defaultType, cust
               <h3 className="font-black text-white text-xs uppercase tracking-widest">Input {type === "INCOME" ? (lang === "id" ? "Pemasukan" : "Income") : type === "EXPENSE" ? (lang === "id" ? "Pengeluaran" : "Expense") : (lang === "id" ? "Alokasi" : "Allocation")}</h3>
               <button onClick={onClose} className="text-zinc-500 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
+
+            {/* Allocation Priority Enforcement Banner */}
+            {type === "ALLOCATION" && hasDebt && (
+              <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl flex items-start gap-2">
+                <ShieldAlert className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[10px] font-black text-rose-400">{lang === "id" ? "🚨 Prioritas Utama: Lunasi Utang" : "🚨 Top Priority: Pay Off Debt"}</p>
+                  <p className="text-[9px] text-zinc-400 mt-0.5">{lang === "id" ? `Sisa utang: Rp${totalDebt.toLocaleString()}. Alokasi diarahkan penuh ke pelunasan utang sesuai Tangga Finansial Level 1.` : `Remaining debt: Rp${totalDebt.toLocaleString()}. Allocation is locked to debt payment per Financial Ladder Level 1.`}</p>
+                </div>
+              </div>
+            )}
+            {type === "ALLOCATION" && !hasDebt && !emergencyFundMet && (
+              <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-xl flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[10px] font-black text-blue-400">{lang === "id" ? "🛡️ Prioritas: Bangun Dana Darurat" : "🛡️ Priority: Build Emergency Fund"}</p>
+                  <p className="text-[9px] text-zinc-400 mt-0.5">{lang === "id" ? `Dana darurat: Rp${efCurrent.toLocaleString()} / Rp${efTarget.toLocaleString()}. Fokus pengisian dana darurat sebelum investasi agresif.` : `Emergency fund: Rp${efCurrent.toLocaleString()} / Rp${efTarget.toLocaleString()}. Focus on emergency fund before aggressive investing.`}</p>
+                </div>
+              </div>
+            )}
             
             <RupiahInput
               label={lang === "id" ? "Nominal Transaksi" : "Transaction Amount"}
@@ -1146,6 +1186,7 @@ export default function FinanceDashboard({ financeData, transactions = [], onAdd
         onEditCustomCategory={handleEditCustomCategory}
         onDeleteCustomCategory={handleDeleteCustomCategory}
         lang={lang}
+        financeData={financeData}
         isSurvival={financeData?.total_debt > 0 || (usersCore?.financial_state_id === "Survival")}
       />
 

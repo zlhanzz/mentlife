@@ -397,9 +397,8 @@ export async function addFinancialTransactionAction(
     liquidSavings -= amount;
     // Kategori allocation yang mempengaruhi saldo
     if (category === "Dana Darurat" || category === "Tabungan" || category === "Dana Pensiun" || category === "Dana Liburan" || category === "Dana Pembelian Besar" || category === "Dana Pendidikan Anak") {
-      // Dana darurat dan tabungan tidak mempengaruhi saldo cair, tetapi mengalihkan alokasi
-      // Untuk saat ini, kita anggap tidak perlu update saldo cair
-    } else if (category === "Bayar Utang") {
+      // Dana darurat dan tabungan dialokasikan dari kas cair
+    } else if (category === "Pelunasan Utang" || category === "Bayar Utang") {
       totalDebt = Math.max(0, totalDebt - amount);
     } else if (category === "Investasi") {
       investmentValue += amount;

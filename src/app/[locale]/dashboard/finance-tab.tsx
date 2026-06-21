@@ -124,7 +124,7 @@ export default function FinanceTab({
         setLiquid(l => l - amount);
         if (category === "Dana Darurat") {
           setEfCurrent(e => e + amount);
-        } else if (category === "Bayar Utang") {
+        } else if (category === "Pelunasan Utang" || category === "Bayar Utang") {
           setDebt(d => Math.max(0, d - amount));
         } else if (category === "Investasi") {
           setInvest(i => i + amount);
