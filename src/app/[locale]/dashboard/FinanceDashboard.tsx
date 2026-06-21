@@ -941,9 +941,9 @@ export default function FinanceDashboard({ financeData, transactions = [], onAdd
 
   const isInvestmentLocked = isFeatureLocked(ladderLevel, 'INVESTMENT');
   const efProgress = financeData?.emergency_fund_target > 0 ? ((financeData.emergency_fund_current || 0) / financeData.emergency_fund_target) * 100 : 0;
-  // Debt progress: shows % of debt already paid (not remaining)
+  // Debt progress: countdown from full → empty as debt is paid off
   const originalDebt = (financeData?.total_debt || 0) + (financeData?.debt_paid || 0);
-  const debtProgress = originalDebt > 0 ? ((financeData?.debt_paid || 0) / originalDebt) * 100 : 0;
+  const debtProgress = originalDebt > 0 ? ((financeData?.total_debt || 0) / originalDebt) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-24">
