@@ -38,6 +38,7 @@ export const INCOME_CATEGORIES = [
 ];
 
 export const ALLOCATION_CATEGORIES = [
+  { id: "utang_baru", label: "Tambah Utang", icon: "📥" },
   { id: "darurat", label: "Dana Darurat", icon: "🛡️" },
   { id: "utang", label: "Pelunasan Utang", icon: "💳" },
   { id: "investasi", label: "Investasi", icon: "💎" },

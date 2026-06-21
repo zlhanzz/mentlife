@@ -373,11 +373,12 @@ const TransactionModal = ({ isOpen, onClose, onAddTransaction, defaultType, cust
     if (type === "INCOME") defaults = INCOME_CATEGORIES;
     else if (type === "ALLOCATION") {
       // Apply financial ladder priority enforcement
+      // "Tambah Utang" is always available (users can record new debt at any level)
       if (hasDebt) {
-        // Level 1: Debt exists → ONLY debt payment allowed
-        defaults = ALLOCATION_CATEGORIES.filter(c => c.id === "utang");
+        // Level 1: Debt exists → debt payment + ability to add new debt
+        defaults = ALLOCATION_CATEGORIES.filter(c => c.id === "utang" || c.id === "utang_baru");
       } else if (!emergencyFundMet) {
-        // Level 2: No debt but emergency fund incomplete → Dana Darurat + Investasi
+        // Level 2: No debt but emergency fund incomplete → Dana Darurat + Investasi + Tambah Utang
         defaults = ALLOCATION_CATEGORIES.filter(c => c.id !== "utang");
       } else {
         // Level 3+: All options available
@@ -942,8 +943,9 @@ export default function FinanceDashboard({ financeData, transactions = [], onAdd
   const isInvestmentLocked = isFeatureLocked(ladderLevel, 'INVESTMENT');
   const efProgress = financeData?.emergency_fund_target > 0 ? ((financeData.emergency_fund_current || 0) / financeData.emergency_fund_target) * 100 : 0;
   // Debt progress: countdown from full → empty as debt is paid off
-  const originalDebt = (financeData?.total_debt || 0) + (financeData?.debt_paid || 0);
-  const debtProgress = originalDebt > 0 ? ((financeData?.total_debt || 0) / originalDebt) * 100 : 0;
+  // Uses total_borrowed (all debt ever taken) as the baseline denominator
+  const totalBorrowed = financeData?.total_borrowed || ((financeData?.total_debt || 0) + (financeData?.debt_paid || 0));
+  const debtProgress = totalBorrowed > 0 ? ((financeData?.total_debt || 0) / totalBorrowed) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-24">
@@ -1020,9 +1022,14 @@ export default function FinanceDashboard({ financeData, transactions = [], onAdd
                 <p className="text-[9px] font-bold text-white">Rp{financeData?.emergency_fund_current?.toLocaleString() || 0} <span className="text-zinc-500 font-normal">/ Rp{financeData?.emergency_fund_target?.toLocaleString() || 0}</span></p>
               </div>
               <div className="bg-card p-4 rounded-2xl border border-white/5">
-                <CreditCard className="w-4 h-4 text-rose-500 mb-2" />
+                <div className="flex items-center justify-between mb-2">
+                  <CreditCard className="w-4 h-4 text-rose-500" />
+                  <button onClick={() => handleOpenModal("ALLOCATION")} className="w-5 h-5 rounded-md bg-rose-500/10 hover:bg-rose-500/20 flex items-center justify-center transition-colors" title={lang === "id" ? "Catat Utang Baru" : "Record New Debt"}>
+                    <span className="text-[9px] font-black text-rose-500 leading-none">+</span>
+                  </button>
+                </div>
                 <p className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">{t("finance.utangAktif")}</p>
-                <div className="h-1 bg-zinc-800 rounded-full mt-2 mb-2"><div className="h-full bg-rose-500 rounded-full" style={{ width: `${debtProgress}%` }} /></div>
+                <div className="h-1 bg-zinc-800 rounded-full mt-2 mb-2"><div className="h-full bg-rose-500 rounded-full transition-all duration-500" style={{ width: `${debtProgress}%` }} /></div>
                 <p className="text-[9px] font-bold text-rose-400">Rp{financeData?.total_debt?.toLocaleString() || 0}</p>
               </div>
             </div>

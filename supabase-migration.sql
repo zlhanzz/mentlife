@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS financial_profiles (
   fixed_expenses NUMERIC DEFAULT 0,
   total_debt NUMERIC DEFAULT 0,
   debt_paid NUMERIC DEFAULT 0,
+  total_borrowed NUMERIC DEFAULT 0,
   debt_details TEXT,
   liquid_savings NUMERIC DEFAULT 0,
   investment_value NUMERIC DEFAULT 0,

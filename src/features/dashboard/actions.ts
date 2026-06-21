@@ -375,7 +375,7 @@ export async function addFinancialTransactionAction(
   // 2. Ambil data keuangan profil saat ini
   const { data: finProfile, error: profileFetchError } = await supabase
     .from("financial_profiles")
-    .select("liquid_savings, emergency_fund_current, total_debt, investment_value, debt_paid")
+    .select("liquid_savings, emergency_fund_current, total_debt, investment_value, debt_paid, total_borrowed")
     .eq("id", user.id)
     .single();
 
@@ -388,6 +388,7 @@ export async function addFinancialTransactionAction(
   let totalDebt = Number(finProfile.total_debt) || 0;
   let investmentValue = Number(finProfile.investment_value) || 0;
   let debtPaid = Number(finProfile.debt_paid) || 0;
+  let totalBorrowed = Number(finProfile.total_borrowed) || (totalDebt + debtPaid);
 
   // 3. Terapkan logika double-entry update
   if (type === "INCOME") {
@@ -395,15 +396,22 @@ export async function addFinancialTransactionAction(
   } else if (type === "EXPENSE") {
     liquidSavings -= amount;
   } else if (type === "ALLOCATION") {
-    liquidSavings -= amount;
-    // Kategori allocation yang mempengaruhi saldo
-    if (category === "Dana Darurat" || category === "Tabungan" || category === "Dana Pensiun" || category === "Dana Liburan" || category === "Dana Pembelian Besar" || category === "Dana Pendidikan Anak") {
-      // Dana darurat dan tabungan dialokasikan dari kas cair
-    } else if (category === "Pelunasan Utang" || category === "Bayar Utang") {
-      totalDebt = Math.max(0, totalDebt - amount);
-      debtPaid += amount;
-    } else if (category === "Investasi") {
-      investmentValue += amount;
+    if (category === "Tambah Utang" || category === "Utang Baru") {
+      // New debt: cash IN (borrowed money received) + debt increases
+      liquidSavings += amount;
+      totalDebt += amount;
+      totalBorrowed += amount;
+    } else {
+      liquidSavings -= amount;
+      // Kategori allocation yang mempengaruhi saldo
+      if (category === "Dana Darurat" || category === "Tabungan" || category === "Dana Pensiun" || category === "Dana Liburan" || category === "Dana Pembelian Besar" || category === "Dana Pendidikan Anak") {
+        // Dana darurat dan tabungan dialokasikan dari kas cair
+      } else if (category === "Pelunasan Utang" || category === "Bayar Utang") {
+        totalDebt = Math.max(0, totalDebt - amount);
+        debtPaid += amount;
+      } else if (category === "Investasi") {
+        investmentValue += amount;
+      }
     }
   }
 
@@ -417,6 +425,7 @@ export async function addFinancialTransactionAction(
       total_debt: totalDebt,
       investment_value: investmentValue,
       debt_paid: debtPaid,
+      total_borrowed: totalBorrowed,
       current_stage: currentStage,
       updated_at: new Date().toISOString(),
     })

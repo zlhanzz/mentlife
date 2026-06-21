@@ -26,6 +26,7 @@ interface FinanceTabProps {
   fixedExpenses: number;
   totalDebt: number;
   debtPaid?: number;
+  totalBorrowed?: number;
   debtDetails: string;
   emergencyFundCurrent: number;
   emergencyFundTarget: number;
@@ -41,6 +42,7 @@ export default function FinanceTab({
   fixedExpenses,
   totalDebt,
   debtPaid = 0,
+  totalBorrowed = 0,
   debtDetails,
   emergencyFundCurrent,
   emergencyFundTarget,
@@ -60,6 +62,7 @@ export default function FinanceTab({
   const [efCurrent, setEfCurrent] = useState(emergencyFundCurrent);
   const [debt, setDebt] = useState(totalDebt);
   const [debtPaidState, setDebtPaid] = useState(debtPaid);
+  const [totalBorrowedState, setTotalBorrowed] = useState(totalBorrowed || totalDebt + debtPaid);
   const [invest, setInvest] = useState(investmentValue);
 
   // Synchronize state with props when props change
@@ -82,6 +85,10 @@ export default function FinanceTab({
   useEffect(() => {
     setDebtPaid(debtPaid);
   }, [debtPaid]);
+
+  useEffect(() => {
+    setTotalBorrowed(totalBorrowed || totalDebt + debtPaid);
+  }, [totalBorrowed, totalDebt, debtPaid]);
 
   useEffect(() => {
     setInvest(investmentValue);
@@ -128,14 +135,21 @@ export default function FinanceTab({
       } else if (type === "EXPENSE") {
         setLiquid(l => l - amount);
       } else if (type === "ALLOCATION") {
-        setLiquid(l => l - amount);
-        if (category === "Dana Darurat") {
-          setEfCurrent(e => e + amount);
-        } else if (category === "Pelunasan Utang" || category === "Bayar Utang") {
-          setDebt(d => Math.max(0, d - amount));
-          setDebtPaid(d => d + amount);
-        } else if (category === "Investasi") {
-          setInvest(i => i + amount);
+        if (category === "Tambah Utang" || category === "Utang Baru") {
+          // New debt: cash IN + debt increases
+          setLiquid(l => l + amount);
+          setDebt(d => d + amount);
+          setTotalBorrowed(tb => tb + amount);
+        } else {
+          setLiquid(l => l - amount);
+          if (category === "Dana Darurat") {
+            setEfCurrent(e => e + amount);
+          } else if (category === "Pelunasan Utang" || category === "Bayar Utang") {
+            setDebt(d => Math.max(0, d - amount));
+            setDebtPaid(d => d + amount);
+          } else if (category === "Investasi") {
+            setInvest(i => i + amount);
+          }
         }
       }
 
@@ -174,6 +188,7 @@ export default function FinanceTab({
           emergency_fund_target: emergencyFundTarget,
           total_debt: debt,
           debt_paid: debtPaidState,
+          total_borrowed: totalBorrowedState,
           investment_value: invest
         }}
         ladderLevel={ladderState.level}

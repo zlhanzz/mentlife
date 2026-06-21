@@ -218,6 +218,7 @@ export default function DashboardClient({ profile, finance, usersCore, aiRecs, i
             fixedExpenses={finance.fixed_expenses}
             totalDebt={finance.total_debt}
             debtPaid={finance.debt_paid}
+            totalBorrowed={finance.total_borrowed}
             debtDetails={finance.debt_details || ""}
             emergencyFundCurrent={finance.emergency_fund_current}
             emergencyFundTarget={finance.emergency_fund_target}
