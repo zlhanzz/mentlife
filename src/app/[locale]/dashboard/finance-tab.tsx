@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { addFinancialTransactionAction } from "@/features/dashboard/actions";
 import { useApp } from "@/context/app-context";
 import { AlertTriangle } from "lucide-react";
@@ -46,6 +47,7 @@ export default function FinanceTab({
   financialMode
 }: FinanceTabProps) {
   const { lang } = useApp();
+  const tDash = useTranslations("dashboard");
   const [isPending, startTransition] = useTransition();
 
   // Local state for instant feedback and synchronization
@@ -78,7 +80,7 @@ export default function FinanceTab({
 
   const isSurvival = financialMode?.isRedAlert || false;
 
-  const ladderState = evaluateFinancialLadder({
+  const ladderState = useMemo(() => evaluateFinancialLadder({
     liquidSavings: liquid,
     emergencyFundCurrent: efCurrent,
     fixedExpenses,
@@ -90,7 +92,7 @@ export default function FinanceTab({
     investmentValue: invest,
     majorLifeGoals: usersCore.major_life_goals || [],
     ownedAssets: usersCore.owned_assets || [],
-  });
+  }), [liquid, efCurrent, fixedExpenses, monthlyIncome, debt, invest, usersCore.is_sandwich_gen, usersCore.marital_status, usersCore.country_code, usersCore.major_life_goals, usersCore.owned_assets]);
 
   // Handle transaction addition from FinanceDashboard modal
   const handleAddTransaction = async (
@@ -140,12 +142,10 @@ export default function FinanceTab({
             <AlertTriangle className="w-4.5 h-4.5 text-rose-500 shrink-0 mt-0.5" />
             <div>
               <p className="text-xs font-black text-rose-500">
-                {lang === "id" ? "Mode Survival — Hard Data Kritis" : "Survival Mode — Critical Status"}
+                {tDash("finance.survivalMode")}
               </p>
               <p className="text-[10px] text-muted-foreground mt-0.5">
-                {lang === "id"
-                  ? "Fokus: potong pengeluaran variabel dan tambah income power secepatnya. Tidak ada ruang untuk investasi."
-                  : "Focus: cut variable expenses and boost income power immediately. No room for investments."}
+                {tDash("finance.survivalDesc")}
               </p>
             </div>
           </div>
@@ -165,6 +165,7 @@ export default function FinanceTab({
         ladderLevel={ladderState.level}
         countryCode={usersCore.country_code}
         onAddTransaction={handleAddTransaction}
+        usersCore={usersCore}
       />
     </div>
   );

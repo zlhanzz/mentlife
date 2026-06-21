@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useApp } from "@/context/app-context";
+import { useTranslations } from "next-intl";
 import { 
   TrendingUp, Shield, AlertTriangle, LineChart, Target, Plus, X 
 } from "lucide-react";
@@ -128,18 +129,18 @@ export function RupiahInput({
 
   return (
     <div className="space-y-1.5 flex-1 min-w-[200px]">
-      <label className="text-xs font-bold text-muted-foreground block">
+      <label className="text-xs font-bold text-zinc-400 block">
         {label} {required && <span className="text-rose-500">*</span>}
       </label>
       <div className="relative flex items-center">
-        <span className="absolute left-3.5 text-xs font-extrabold text-muted-foreground/60 select-none">Rp</span>
+        <span className="absolute left-3.5 text-xs font-extrabold text-zinc-400 select-none">Rp</span>
         <input
           type="text"
           inputMode="numeric"
           value={displayValue}
           onChange={handleTextChange}
           placeholder={placeholder}
-          className="w-full h-11 pl-9 pr-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:border-primary transition-colors font-medium placeholder:text-muted-foreground/45"
+          className="w-full h-11 pl-9 pr-3.5 rounded-xl border border-white/10 bg-zinc-900/80 text-white text-sm focus:outline-none focus:border-primary transition-colors font-medium placeholder:text-zinc-600"
         />
       </div>
     </div>
@@ -329,6 +330,7 @@ export default function FinanceProfileTab({
 }: FinanceProfileTabProps) {
 
   const { lang } = useApp();
+  const tDash = useTranslations("dashboard");
 
   // Multi-select toggle helpers
   const toggleMultiSelect = (list: string[], setList: React.Dispatch<React.SetStateAction<string[]>>, item: string) => {
@@ -343,16 +345,16 @@ export default function FinanceProfileTab({
   return (
     <div className="space-y-6">
       {/* 1. Cashflow & Runway */}
-      <FinanceSection title="Cashflow & Runway" icon={TrendingUp} colorClass="primary">
+      <FinanceSection title={tDash("profile.cashflowRunway")} icon={TrendingUp} colorClass="primary">
         <div className="flex flex-wrap gap-4">
           <RupiahInput
-            label={lang === "id" ? "Rata-rata Pemasukan Bulanan (Rp)" : "Average Monthly Income (Rp)"}
+            label={tDash("profile.monthlyIncome")}
             value={income}
             onChange={setIncome}
             required
           />
           <RupiahInput
-            label={lang === "id" ? "Pengeluaran Wajib/Dasar Bulanan (Rp)" : "Fixed/Basic Monthly Expenses (Rp)"}
+            label={tDash("profile.monthlyExpenses")}
             value={expenses}
             onChange={setExpenses}
             required
@@ -362,18 +364,18 @@ export default function FinanceProfileTab({
 
       {/* 2. Liquid Assets (Safety Net) */}
       <FinanceSection 
-        title={lang === "id" ? "Aset Likuid (Jaring Pengaman)" : "Liquid Assets (Safety Net)"} 
+        title={tDash("profile.liquidAssets")} 
         icon={Shield} 
         colorClass="emerald"
       >
         <div className="flex flex-wrap gap-4">
           <RupiahInput
-            label={lang === "id" ? "Total Tabungan Tunai / Likuid (Rp)" : "Total Cash / Liquid Savings (Rp)"}
+            label={tDash("profile.totalSavings")}
             value={liquidSavings}
             onChange={setLiquidSavings}
           />
           <RupiahInput
-            label={lang === "id" ? "Aset Lancar Lainnya (Opsional)" : "Other Current Assets (Optional)"}
+            label={tDash("profile.otherAssetsLabel")}
             value={otherAssets}
             onChange={setOtherAssets}
           />
@@ -381,14 +383,10 @@ export default function FinanceProfileTab({
       </FinanceSection>
 
       {/* 3. Utang (Debt) */}
-      <FinanceSection title={lang === "id" ? "Utang" : "Debt"} icon={AlertTriangle} colorClass="rose">
+      <FinanceSection title={tDash("profile.debt")} icon={AlertTriangle} colorClass="rose">
         <ToggleRow
-          label={lang === "id" ? "Apakah kamu memiliki utang/cicilan aktif?" : "Do you have active debt/installments?"}
-          subtitle={
-            lang === "id" 
-              ? "Aktifkan untuk merinci cicilan aktif agar AI dapat memetakan risiko finansialmu." 
-              : "Enable to detail active installments so AI can map your financial risk."
-          }
+          label={tDash("profile.hasDebt")}
+          subtitle={tDash("profile.debtSubtitle")}
           value={hasDebt}
           onChange={setHasDebt}
         />
@@ -397,20 +395,20 @@ export default function FinanceProfileTab({
           <div className="space-y-4 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <RupiahInput
-                label={lang === "id" ? "Utang Berbunga Tinggi" : "High-Interest Debt"}
-                placeholder={lang === "id" ? "Pinjol/CC/Paylater" : "Paylater/CC/Online Loan"}
+                label={tDash("profile.highInterestDebt")}
+                placeholder={tDash("profile.highInterestPlaceholder")}
                 value={debtHighInterest}
                 onChange={setDebtHighInterest}
               />
               <RupiahInput
-                label={lang === "id" ? "Utang Aset / Produktif" : "Asset / Productive Debt"}
-                placeholder={lang === "id" ? "KPR/Kendaraan/Bisnis" : "Mortgage/Vehicle/Business Loan"}
+                label={tDash("profile.productiveDebt")}
+                placeholder={tDash("profile.productivePlaceholder")}
                 value={debtProductive}
                 onChange={setDebtProductive}
               />
               <RupiahInput
-                label={lang === "id" ? "Utang Tanpa Bunga" : "Interest-Free Debt"}
-                placeholder={lang === "id" ? "Keluarga/Teman" : "Family/Friends"}
+                label={tDash("profile.zeroInterestDebt")}
+                placeholder={tDash("profile.zeroInterestPlaceholder")}
                 value={debtZeroInterest}
                 onChange={setDebtZeroInterest}
               />
@@ -421,17 +419,13 @@ export default function FinanceProfileTab({
 
       {/* 4. Portofolio Investasi */}
       <FinanceSection 
-        title={lang === "id" ? "Portofolio Investasi" : "Investment Portfolio"} 
+        title={tDash("profile.investmentPortfolio")} 
         icon={LineChart} 
         colorClass="violet"
       >
         <ToggleRow
-          label={lang === "id" ? "Apakah saat ini kamu sudah memiliki portofolio investasi atau simpanan aset masa depan?" : "Do you currently have an investment portfolio or future asset savings?"}
-          subtitle={
-            lang === "id" 
-              ? "AI mendeteksi fase kemakmuranmu berdasarkan alokasi pertahanan vs investasi." 
-              : "AI detects your prosperity phase based on defense vs investment allocation."
-          }
+          label={tDash("profile.hasInvestment")}
+          subtitle={tDash("profile.investmentSubtitle")}
           value={hasInvestments}
           onChange={setHasInvestments}
         />
@@ -440,30 +434,30 @@ export default function FinanceProfileTab({
           <div className="space-y-4 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="flex flex-wrap gap-4">
               <RupiahInput
-                label={lang === "id" ? "Total Estimasi Nilai Investasi (Rp)" : "Total Estimated Investment Value (Rp)"}
-                placeholder={lang === "id" ? "Total seluruh aset investasi" : "Total of all investment assets"}
+                label={tDash("profile.totalInvestment")}
+                placeholder={tDash("profile.totalInvestmentPlaceholder")}
                 value={investmentValue}
                 onChange={setInvestmentValue}
               />
             </div>
             
             <InteractiveChips
-              label={lang === "id" ? "Instrumen yang Dimiliki" : "Owned Instruments"}
+              label={tDash("profile.ownedInstruments")}
               options={defaultInstruments}
               selected={investmentInstruments}
               onToggle={item => toggleMultiSelect(investmentInstruments, setInvestmentInstruments, item)}
               colorClass="violet"
-              customPlaceholder={lang === "id" ? "Tambah instrumen kustom..." : "Add custom instrument..."}
+              customPlaceholder={tDash("profile.addCustomInstrument")}
             />
           </div>
         )}
       </FinanceSection>
 
       {/* 5. Profil Risiko */}
-      <FinanceSection title={lang === "id" ? "Profil Risiko" : "Risk Profile"} icon={Target} colorClass="amber">
+      <FinanceSection title={tDash("profile.riskProfile")} icon={Target} colorClass="amber">
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-muted-foreground block">
-            {lang === "id" ? "Profil Risiko Investasi" : "Investment Risk Profile"}
+            {tDash("profile.riskProfileLabel")}
           </label>
           <select
             value={riskProfile}
@@ -471,13 +465,13 @@ export default function FinanceProfileTab({
             className="w-full h-11 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:border-primary transition-colors font-medium"
           >
             <option value="konservatif">
-              {lang === "id" ? "Konservatif (Aman)" : "Conservative (Safe)"}
+              {tDash("profile.conservative")}
             </option>
             <option value="moderat">
-              {lang === "id" ? "Moderat (Seimbang)" : "Moderate (Balanced)"}
+              {tDash("profile.moderate")}
             </option>
             <option value="agresif">
-              {lang === "id" ? "Agresif (High-Risk)" : "Aggressive (High-Risk)"}
+              {tDash("profile.aggressive")}
             </option>
           </select>
         </div>

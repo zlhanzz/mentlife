@@ -1,0 +1,110 @@
+{
+  "common": {
+    "appName": "Mentlife",
+    "loading": "로딩 중...",
+    "save": "저장",
+    "cancel": "취소",
+    "back": "뒤로",
+    "next": "다음",
+    "submit": "제출",
+    "skip": "건너뛰기",
+    "add": "+ 추가",
+    "error": "오류가 발생했습니다",
+    "success": "성공",
+    "or": "또는",
+    "backToSignIn": "로그인으로 돌아가기",
+    "alreadyHaveAccount": "이미 계정이 있으신가요?",
+    "signIn": "로그인",
+    "signUp": "회원가입",
+    "creatingAccount": "계정 생성 중...",
+    "checkEmail": "이메일을 확인하세요",
+    "checkEmailDesc": "확인 링크를 이메일로 보냈습니다. 받은 편지함 또는 스팸 폴더를 확인해주세요.",
+    "createAccount": "계정 만들기",
+    "continueWithGoogle": "Google로 계속하기",
+    "signUpDesc": "퍼스널 AI 멘토십을 시작하려면 가입하세요",
+    "signInDesc": "여정을 계속하려면 로그인하세요",
+    "forgotPassword": "비밀번호를 잊으셨나요?",
+    "noAccount": "계정이 없으신가요?",
+    "termsLegal": "계속하면 이용약관 및 개인정보 처리방침에 동의하는 것입니다.",
+    "syncing": "대시보드에 동기화 중...",
+    "openDashboard": "Mentlife 대시보드 열기",
+    "dashboardSyncDesc": "데이터가 저장되고 대시보드가 프로필에 맞게 조정됩니다.",
+    "editAnswer": "이 답변 수정",
+    "calonMentee": "예상 멘티",
+    "done": "완료"
+  },
+  "landing": {
+    "heroSubtitle": "재정 mastery와 경력 가속화를 위한 AI 퍼스널 멘토.",
+    "features": {
+      "finance": { "title": "스마트 파이낸스", "desc": "재산을 추적하고 최적화하세요" },
+      "career": { "title": "경력 성장", "desc": "AI 기반 성공 경로" }
+    },
+    "cta": { "button": "시작하기", "legal": "계속하면 이용약관 및 개인정보 처리방침에 동의하는 것입니다." }
+  },
+  "auth": {
+    "login": { "title": "다시 오신 것을 환영합니다", "email": "이메일 주소", "password": "비밀번호", "submit": "로그인", "google": "Google로 계속하기", "forgotPassword": "비밀번호를 잊으셨나요?", "noAccount": "계정이 없으신가요?", "signUp": "회원가입" },
+    "register": { "title": "계정 만들기", "desc": "퍼스널 AI 멘토십을 시작하려면 가입하세요", "fullName": "성명", "email": "이메일 주소", "password": "비밀번호", "confirmPassword": "비밀번호 확인", "submit": "계정 만들기", "google": "Google로 계속하기", "hasAccount": "이미 계정이 있으신가요?", "signIn": "로그인" },
+    "forgotPassword": { "title": "비밀번호 찾기", "desc": "등록된 이메일을 입력하시면 비밀번호 재설정 링크를 보내드립니다.", "email": "이메일 주소", "submit": "재설정 링크 보내기", "sending": "보내는 중...", "successTitle": "링크가 전송되었습니다!", "backToLogin": "로그인으로 돌아가기" },
+    "resetPassword": { "title": "새 비밀번호 만들기", "desc": "계정의 새 비밀번호를 입력하세요.", "newPassword": "새 비밀번호", "confirmPassword": "새 비밀번호 확인", "submit": "비밀번호 저장", "saving": "저장 중...", "successTitle": "비밀번호가 변경되었습니다!", "goToLogin": "새 비밀번호로 로그인", "rememberPassword": "비밀번호를 기억하시나요?", "signIn": "로그인" }
+  },
+  "onboarding": {
+    "header": { "title": "AI 온보딩 멘토", "subtitle": "소개 상호작용 및 프로그램 맞춤화" },
+    "profileSheet": { "aiUnderstanding": "AI 이해도", "needsCompletion": "완료 필요", "fairlyComplete": "상당히 완료", "veryComplete": "매우 완료", "perfect": "완벽" },
+    "sectionDividers": { "finance": "재정", "career": "경력 및 목표" },
+    "welcome": { "greeting": "안녕하세요! Mentlife에 오신 것을 환영합니다. 최고의 재정 및 경력 전략을 구축하도록 안내하는 AI 퍼스널 멘토입니다.", "firstQuestion": "시작하기 전에, 닉네임, 생년월일, 현재 거주 도시를 알려주시겠어요?", "resumeGreeting": "안녕하세요! Mentlife에 다시 오신 것을 환영합니다. 이전에 온보딩을 시작한 것 같네요. 계속합시다." },
+    "steps": {
+      "identity": { "namePlaceholder": "닉네임...", "domicilePlaceholder": "도시, 국가 (예: 서울, 한국)", "genderQuestion": "성별이 무엇인가요? AI가 경력 추천을 조정하는 데 도움이 됩니다.", "insuranceQuestion": "건강 보험이 있으신가요? 비상 자금 계획에 중요합니다.", "greetingSkills": "만나서 반갑습니다, {name}! 올바른 전략을 구축하기 위해 잠재력을 이해해야 합니다. 어떤 기술을 보유하고 계신가요?" },
+      "skills": { "question": "만나서 반갑습니다! 올바른 전략을 구축하기 위해 잠재력을 이해해야 합니다. 어떤 기술을 보유하고 계신가요?", "experienceQuestion": "훌륭합니다! 이제 해당 기술에 대한 경험이나 배경에 대해 알려주세요.", "experienceFollowUp": "훌륭합니다! 이제 해당 기술에 대한 경험이나 배경에 대해 알려주세요.", "storyQuestion": "추가 이야기나 가장 발전시키고 싶은 분야가 있나요? (택사항, 건너뛰기 가능)", "storyFollowUp": "추가 이야기나 가장 발전시키고 싶은 분야가 있나요?", "addCustom": "다른 기술 추가...", "placeholder": "경험과 배경에 대해 알려주세요...", "storyPlaceholder": "추가 이야기, 예: 가장 발전시키고 싶은 분야...", "storySkipped": "추가 이야기: — (건너뜀)" },
+      "hobbies": { "question": "훌륭합니다! 이키가이 교차점을 찾기 위해, 어떤 취미를 좋아하고 어떤 주제에 관심이 있나요?", "interestQuestion": "멋져요! 이제 어떤 주제나 분야에 관심이 있나요?", "interestFollowUp": "멋져요! 이제 어떤 주제나 분야에 관심이 있나요?", "storyQuestion": "취미나 관심사에 대한 추가 이야기가 있나요? (선택사항, 건너뛰기 가능)", "storyFollowUp": "취미나 관심사에 대한 추가 이야기가 있나요?", "addCustom": "다른 취미 추가...", "addCustomInterest": "다른 관심사 추가...", "hobbyLabel": "취미:", "interestLabel": "관심사:", "transition": "훌륭합니다! 이키가이 교차점을 찾기 위해, 어떤 취미를 좋아하고 어떤 주제에 관심이 있나요?", "storySkipped": "추가 이야기: — (건너뜀)", "financeTransition": "프로필 데이터가 완벽합니다. 재정 상황 추정을 시작합시다." },
+      "finance": { "intro": "프로필 데이터가 완벽합니다. 재정 상황 추정을 시작합시다.", "incomeQuestion": "월 수입은?", "expenseQuestion": "월 지출은?", "savingsQuestion": "현재 저축 총액은?", "dependentsQuestion": "부양하는 사람이 있나요?", "debtQuestion": "부채가 있나요?", "debtBreakdown": "부채 상세:", "debtHighInterest": "고금리 부채", "debtProductive": "생산적 부채", "debtZeroInterest": "무이자 부채", "investmentQuestion": "투자가 있나요?", "investmentExpQuestion": "어떤 투자 상품을 시도했나요?", "riskQuestion": "위험 프로필은?", "riskLabels": { "konservatif": "보수적", "moderat": "중용", "agresif": "공격적" }, "incomeLabel": "Estimated Monthly Income", "incomeHelper": "Estimated total monthly income.", "incomePlaceholder": "E.g.: 5,000,000", "expenseLabel": "Estimated Monthly Expenses", "expenseHelper": "Total fixed monthly expenses.", "expensePlaceholder": "E.g.: 3,000,000", "savingsLabel": "Savings / Liquid Funds", "savingsHelper": "Total cash accessible now.", "savingsPlaceholder": "E.g.: 2,000,000", "debtEstimateLabel": "Estimated Debt", "debtHelper": "If you have debts, fill each type.", "debtHighLabel": "High Interest", "debtHighPlaceholder": "Payday loans, Credit cards...", "debtProductiveLabel": "Productive", "debtProductivePlaceholder": "Mortgage, Business loan...", "debtZeroLabel": "Zero Interest", "debtZeroPlaceholder": "Family, Friends...", "noDebt": "No Debt", "investmentLabel": "Investment Value", "investmentHelper": "Total investment value.", "investmentPlaceholder": "E.g.: 5,000,000", "riskLabel": "Risk Profile", "riskHelper": "Your financial decision tendency?" },
+      "career": { "intro": "재정 데이터가 기록되었습니다. 경력과 목표에 대해 이야기합시다.", "followUps": { "karyawan": "어느 회사에서 일하고 있나요?", "pengusaha": "사업 이름은?", "mahasiswa": "어느 대학인가요?", "freelance": "어떤 분야에서 일하나요?", "menganggur": "어떤 포지션을 목표로 하나요?", "default": "더 자세히 알려주세요." }, "educationQuestion": "최종 학력은?", "careerGoalQuestion": "경력 목표는?", "focusQuestion": "주요 초점은?", "hoursQuestion": "하루 실행 시간은?", "lifeGoalQuestion": "인생 최대의 목표는?", "statusLabel": "Current Career Status", "statusHelper": "Choose what describes you.", "customStatusPlaceholder": "Or type another...", "companyLabel": "Company Name", "companyPlaceholder": "E.g.: Company ABC", "positionLabel": "Position", "positionPlaceholder": "E.g.: Marketing Staff", "businessNameLabel": "Business Name", "businessNamePlaceholder": "E.g.: Online Store", "businessFieldLabel": "What Field?", "businessFieldPlaceholder": "E.g.: F&B, Fashion", "universityLabel": "University", "universityPlaceholder": "E.g.: University Name", "majorLabel": "Major", "majorPlaceholder": "E.g.: Computer Science", "freelanceLabel": "Freelance Field", "freelanceHelper": "E.g.: Design on Fiverr", "freelancePlaceholder": "E.g.: Design on Fiverr", "desiredRoleLabel": "Target Position", "desiredRoleHelper": "E.g.: Digital marketing", "desiredRolePlaceholder": "E.g.: Digital marketing", "detailLabel": "Tell More", "detailPlaceholder": "E.g.: Building a project...", "educationPlaceholder": "Add education...", "careerGoalLabel": "Career Target", "careerGoalHelper": "What to achieve?", "careerGoalPlaceholder": "E.g.: Passive income", "focusLabel": "Main Focus", "focusHelper": "Concrete steps?", "focusPlaceholder": "E.g.: Build business", "hoursLabel": "Daily Capacity", "hoursHelper": "Hours per day?", "perDay": "/ day", "lifeGoalLabel": "Life Goal", "lifeGoalHelper": "Your biggest goal? (optional)", "lifeGoalPlaceholder": "E.g.: Financial freedom", "lifeGoalSkipped": "Life goal: — (skipped)" },
+      "living": { "intro": "거의 완료되었습니다! 현재 어디에 살고 계신가요?", "deviceQuestion": "어떤 기기를 사용하나요?", "brandQuestion": "기기의 브랜드/모델은?", "mobilityQuestion": "이동 자산은?", "completion": "완벽합니다! 모든 데이터가 수집되었습니다.", "livingLabel": "Living Status", "livingHelper": "Where do you live?", "deviceLabel": "Work Devices", "deviceHelper": "Select all devices.", "brandLabel": "Device Brand", "brandHelper": "Specific brand/model (optional)", "brandPlaceholder": "Brand/model", "mobilityLabel": "Mobility Assets", "mobilityHelper": "Select all assets.", "confirmNext": "Confirm & Continue" }
+    },
+    "presets": {
+      "skills": ["프로그래밍", "그래픽 디자인", "카피라이팅", "영상 편집", "판매 및 마케팅", "데이터 분석", "교육/멘토링", "Excel/관리", "공개 연설", "콘텐츠 크리에이터", "소셜 미디어", "사진", "인테리어 디자인", "요리", "음악", "외국어", "고객 서비스", "회계", "패션 디자인", "애니메이션/일러스트"],
+      "hobbies": ["게이밍", "작업/블로그", "사진", "요리/베이킹", "피트니스/짐", "아트/드로잉", "여행", "음악/노래", "독서", "원예", "DIY/공예", "하이킹/아웃도어", "댄스", "팟캐스트", "스트리밍", "패션", "자동차", "코딩/테크", "영화/시네마", "스포츠"],
+      "interests": ["온라인 비즈니스", "인공지능 (AI)", "개인 재정", "이커머스", "건강 및 웰니스", "투자 및 주식", "기술", "교육", "환경", "정치 및 사회", "예술 및 문화", "육아", "요리", "여행", "게이밍 산업", "미디어 및 엔터테인먼트"],
+      "formalStatus": ["학생", "직원", "사업가", "프리랜서", "실업 / 구직 중"],
+      "workDevice": ["표준 스마트폰", "플래그십 스마트폰", "표준 노트북/PC", "고성능 노트북/PC", "카메라"],
+      "mobility": ["개인 오바이", "개인 자동차", "대중교통/온라인"],
+      "living": { "Tinggal Bersama Orang Tua/Keluarga": "부모/가족과 동거", "Sewa/Ngekost Bulanan": "월세/하숙", "Sewa/Kontrak Tahunan": "연세/계약", "Milik Sendiri (KPR)": "자가 (모기지)", "Milik Sendiri (Lunas)": "자가 (완납)" },
+      "freeHours": ["2시간 미만", "3-4시간", "5-7시간", "8시간 이상"],
+      "dependents": ["없음", "1-2명", "3명 이상"],
+      "investmentExperience": ["경험 없음", "예금", "뮤추얼 펀드", "주식", "금", "암호화폐", "P2P 렌딩", "부동산"],
+      "education": ["초/중/고", "전문대/디플로마", "학사", "석사", "박사", "코스/자격증", "독학"],
+      "gender": ["남성", "여성"],
+      "insurance": ["공공 건강보험", "공공 + 민간 보험", "민간 보험", "보험 없음"],
+      "challenges": ["저축이 어려움", "경력 방향 불명확", "번아웃 및 피로", "규율 부족", "시간 부족", "자원 부족", "동기 부족"],
+      "ikigai": { "passion": ["창의성", "타인 돕기", "새로운 것 배우기", "독립", "인정", "자유", "생활 균형"], "profession": ["열심히 일하기", "일관성", "적응력", "협력", "혁신", "문제 해결", "리더십"], "mission": ["타인 역량 강화", "변화 창출", "생활의 질 향상", "성장 촉진", "가치 창출"], "vocation": ["주요 경력", "사이드 허슬", "자원봉사", "멘토링", "커뮤니티"] }
+    }
+  },
+  "welcome": {
+    "badge": "분석 완료",
+    "metrics": { "income": "수입", "expenses": "지출", "savings": "저축", "runway": "런웨이", "debt": "부채", "investment": "투자", "perMonth": "/월" },
+    "mentor": { "title": "AI 멘토의 메시지", "diagnosis": "제가 보는 것", "solution": "프로그램 방향" },
+    "tangga": "사다리",
+    "insight": { "title": "AI 인사이트" },
+    "cta": { "button": "Mentlife 대시보드 열기", "subtext": "데이터가 저장되고 대시보드가 프로필에 맞게 조정됩니다." },
+    "fallback": { "greeting": "안녕하세요! Mentlife에 오신 것을 환영합니다.", "diagnosis": "재정 데이터를 분석했습니다. 재정 기반을 단계적으로 강화해야 합니다.", "solution": "가장 기본적인 단계부터 시작하여 하나씩 구축해 나가겠습니다. 매 단계에서 동행하겠습니다." }
+  },
+  "tangga": {
+    "levels": { "0": { "name": "수입 스타터", "desc": "초점: 첫 수입원 확보." }, "1": { "name": "부채 제로", "desc": "초점: 모든 소비 부채를 공격적으로 상환." }, "2": { "name": "비상 자금", "desc": "초점: 지출의 3-6배 비상 자금 구축." }, "3": { "name": "투자 20%", "desc": "초점: 수입의 20%를 투자에 할당." } },
+    "modes": { "survival": { "label": "생존 모드", "desc": "위험한 런웨이. 현금흐름에 절대 초점." }, "growth": { "label": "성장 모드", "desc": "견고한 기반. 확장할 때." }, "stability": { "label": "안정 모드", "desc": "기반이 아직 구체적이지 않음. 비상 자금 강화." } }
+  },
+  "dashboard": {
+      "tabs": { "home": "홈", "finance": "재정", "career": "경력", "profile": "프로필" },
+      "header": { "stageDebt": "단계: 부채 상환", "stageEmergency": "단계: 비상 자금", "stageInvest": "단계: 투자", "logout": "로그아웃" },
+      "home": { "greeting": "환영합니다 \uD83D\uDC4B", "finance": "월간 재정", "income": "수입", "expense": "지출", "remaining": "잔액", "targetDebt": "목표: 부채 상환", "targetEmergency": "목표: 비상 자금", "collected": "저축됨", "target": "목표", "achieved": "% 달성", "aiAdvice": "AI 멘토 조언", "sideHustle": "추가 수입 기회", "debtTip": "확보", "debtTip2": "/월로 부채를 빨리 상환.", "emergencyTip": "이상적인 비상 자금 = 고정비 지출의 6배. 저축 기록", "aiUnderstanding": "AI 이해 및 프로필 완성도", "completeProfile": "AI 추천을 100% 정확하게 하려면 프로필을 완성하세요!", "complete": "완성", "dailyMissions": "일일 미션 ({count}개 작업)", "aiInsightToday": "오늘의 AI 인사이트", "askMore": "더 묻기", "ikigaiRecommendations": "당신의 이키가이 추천", "completeness": { "needsCompletion": "완성 필요", "moderatelyComplete": "중간정도 완성", "veryComplete": "매우 완성", "perfect": "완벽" } },
+      "chat": { "title": "AI 멘토에게 질문", "subtitle": "재정이나 경력 상담", "greeting": "안녕하세요! 당신의 AI 멘토입니다", "greetingSub": "재정이나 경력에 대해 무엇이든 물어보세요!", "q1": "부채를 빨리 상환하는 방법?", "q2": "낮은 수입으로 저금하는 팁", "q3": "부업 시작 방법", "typing": "AI 멘토가 입력 중...", "placeholder": "질문을 입력하세요..." },
+      "finance": { "summary": "요약", "analytics": "분석", "history": "기록", "sisaKas": "잔여 현금", "danaDarurat": "비상 자금", "utangAktif": "활성 부채", "investasi": "투자", "levelTangga": "사다리 레벨", "terkunci": "잠김", "pemasukan": "+ 수입", "pengeluaran": "- 지출", "alokasi": "\u21C4 할당", "anggaranBulanan": "월간 예산", "anggaranSub": "월간 할당 규율", "danaGoal": "미래 재정 목표", "danaGoalSub": "AI가 모니터링하는 주요 목표", "tambahAnggaran": "+ 예산 추가", "tambahGoal": "+ 목표 추가", "berulang": "반복", "tidakBerulang": "한 번", "aiReview": "CFO AI 평가", "targetWaktu": "목표 날짜", "sisa": "잔여", "terpakai": "사용됨", "simpan": "저장", "batal": "취소", "survivalMode": "생존 모드 — 위험 상태", "survivalDesc": "초점: 변동비를 줄이고 즉시 수입력을 높이세요. 투자 여지 없음." },
+      "tasks": { "title": "작업 목록", "subtitle": "일일 계획 관리", "add": "+ 추가", "placeholder": "작업 이름...", "addBtn": "작업 추가", "emptyTitle": "작업 없음", "emptySub": "\"+ 추가\"를 클릭하여 첫 작업 생성" },
+      "missions": { "recordToday": "오늘의 모든 거래 기록", "recordTodaySub": "AI가 지출 패턴 분석", "updateFinance": "재정 상태 업데이트", "updateFinanceSub": "저축, 부채, 비상 자금 변경?", "chatAI": "AI 멘토와 토론", "chatAISub": "전략 질문 또는 평가 요청" },
+      "career": { "level": "경력 레벨", "priorityActions": "우선 작업", "ikigaiProfile": "당신의 이키가이 프로필", "completeIkigai": "이키가이 프로필 완성", "sideHustleOpportunities": "경력 & 사이드 허슬 기회 — AI Curated", "taskTitle": "작업 제목", "category": "카테고리", "saving": "저장 중...", "save": "저장", "emptyTaskDesc": "위의 작업 버튼을 클릭하여 직접 추가" },
+      "profile": { "progress": "프로필 진행 상황", "step": "{total}단계 중 {current}: {name}", "selected": "선택됨", "personal": "개인", "career": "커리어", "finance": "재정", "displayTheme": "디스플레이 테마", "language": "언어", "signOut": "로그아웃", "profile": "프로필", "statusNotSet": "상태가 설정되지 않음", "aiInsights": "AI 인사이트", "fillProfileForInsights": "AI 인사이트를 받으려면 프로필을 더 자세히 작성하세요.", "aiLearnsFromChat": "AI는 채팅에서 당신의 상태와 커뮤니케이션 스타일을 자동으로 학습합니다.", "identityDemographics": "정체성 및 인구통계", "fullName": "성명", "displayName": "표시 이름", "birthDate": "생년월일", "gender": "성별", "domicile": "거주지 (도시 및 국가)", "domicilePlaceholder": "예: 서울, 한국", "autoDetectLocation": "위치 자동 감지", "livingSituation": "거주 상황", "currentLiving": "현재 거주 상황", "livingInfo": "💡 이 정보는 AI가 위기 모드 프로토콜을 조정하는 데 사용됩니다.", "rentByChoice": "선택적 임대", "rentByChoiceDesc": "장기 임대를 선택하는 경우 활성화하세요.", "dependents": "부양가족 및 샌드위치 세대", "maritalStatus": "결혼 상태", "single": "미혼", "dating": "연애 중", "married": "기혼", "previouslyMarried": "이혼/사별", "sandwichGen": "샌드위치 세대", "supportingFamily": "가족 부양", "dependentsCount": "부양가족 수", "physicalLimitations": "신체적 제한", "haveLimitations": "신체적 제한이 있나요?", "limitationsDesc": "AI가 신체적으로 부담이 큰 작업을 추천하는 것을 방지합니다.", "limitationDetails": "제한 상세", "limitationPlaceholder": "예: 휠체어, 천식, 무릎 부상...", "devicesMobility": "기기 및 이동성 자산", "workDevices": "작업 기기", "addCustomDevice": "사용자 정의 기기 추가...", "mobilityAssets": "이동성 자산", "addCustomAsset": "사용자 정의 자산 추가...", "northStarGoals": "북극성 목표", "lifeGoal": "인생 목표", "lifeGoalPlaceholder": "예: 25세까지 자동 운영되는 비즈니스 시스템 구축...", "lifeGoalInfo": "💡 이것은 당신의 나침반입니다. AI 멘토는 가이드 세션 중에 이를 참조합니다.", "shortBio": "간단한 이력", "bioPlaceholder": "간단한 배경...", "saving": "저장 중...", "saveUpdateAI": "저장 및 AI 업데이트", "profileUpdated": "프로필 및 AI 매개변수가 업데이트되었습니다!", "locationFailed": "위치를 감지하지 못했습니다. 수동으로 입력하세요.", "detailsContext": "상세 및 컨텍스트", "education": "교육 및 훈련", "educationPlaceholder": "교육 또는 훈련 중점에 대해 더 알려주세요.", "currentStatus": "현재 상태 및 루틴", "statusPlaceholder": "현재 일이나 일상 루틴은 무엇인가요?", "skills": "기술", "skillsPlaceholder": "어떤 기술을 주요 수입원으로 전환하고 싶나요?", "hobbies": "취미", "hobbiesPlaceholder": "시간을 잊게 만드는 취미나 활동은 무엇인가요?", "careerGoals": "커리어 목표 및 우선순위", "careerGoalsPlaceholder": "향후 1-3년의 커리어 목표와 우선순위를 설명하세요.", "cashflowRunway": "현금흐름 및 런웨이", "monthlyIncome": "평균 월수입 (Rp)", "monthlyExpenses": "고정/기본 월간 비용 (Rp)", "liquidAssets": "유동 자산 (안전망)", "totalSavings": "총 현금 / 유동 예금 (Rp)", "otherAssetsLabel": "기타 현재 자산 (선택사항)", "debt": "부채", "hasDebt": "활성 부채/할부금이 있나요?", "debtSubtitle": "AI가 재무 위험을 매핑할 수 있도록 활성 할부금을 상세히 기록하세요.", "highInterestDebt": "고금리 부채", "highInterestPlaceholder": "Paylater/CC/온라인 대출", "productiveDebt": "자산 / 생산적 부채", "productivePlaceholder": "주택담보대출/차량/사업대출", "zeroInterestDebt": "무이자 부채", "zeroInterestPlaceholder": "가족/친구", "investmentPortfolio": "투자 포트폴리오", "hasInvestment": "투자 포트폴리오 또는 미래 자산 저축이 있나요?", "investmentSubtitle": "AI는 방어 vs 투자 배분에 기반하여 당신의 번영 단계를 감지합니다.", "totalInvestment": "총 추정 투자 가치 (Rp)", "totalInvestmentPlaceholder": "모든 투자 자산의 합계", "ownedInstruments": "보유 금융상품", "addCustomInstrument": "사용자 정의 금융상품 추가...", "riskProfile": "위험 프로필", "riskProfileLabel": "투자 위험 프로필", "conservative": "보수적 (안전)", "moderate": "중용 (균형)", "aggressive": "공격적 (고위험)", "instruments": ["주식", "투자신탁", "금", "암호화폐", "부동산", "채권/정부증권"] }
+    },
+  "analysis": { "phases": ["신원 데이터 분석 중...", "기술 및 경험 스캔 중...", "재정 프로필 평가 중...", "경력 목표 분석 중...", "우선순위 전략 구축 중...", "추천 최종화 중..."],
+    "scanning": ["Scanning profile", "Analyzing finances", "Mapping skills", "Assessing career", "Building strategy", "Finalizing"],
+    "readyTitle": "Ready to Begin?", "readyDesc": "AI will analyze your data.", "startAnalysis": "Start AI Analysis", "analyzingTitle": "AI Analyzing", "analyzingDesc": "Recognizing potential",
+    "percentComplete": "% complete", "debtNone": "— (none)", "debtSkipped": "— (skipped)", "storySkipped": "Story: — (skipped)", "goalSkipped": "— (skipped)", "locationFail": "Location detection failed."
+  }
+}

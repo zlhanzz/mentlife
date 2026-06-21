@@ -2,6 +2,7 @@
 // Modular components untuk profile-tab.tsx
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useApp } from "@/context/app-context";
 import { cn } from "@/lib/utils";
 
@@ -11,14 +12,14 @@ export const textareaCls = "w-full px-3 py-3 rounded-xl border border-border/60 
 
 // Progress Indicator Component
 export function ProfileProgress({ sections, currentSection }: { sections: string[]; currentSection: string }) {
-  const { lang } = useApp();
+  const tDash = useTranslations("dashboard");
   const currentIndex = sections.indexOf(currentSection);
   const progress = Math.round(((currentIndex + 1) / sections.length) * 100);
   
   return (
     <div className="mx-4 mb-4">
       <div className="flex justify-between text-[10px] font-bold mb-1">
-        <span className="text-muted-foreground">{lang === "id" ? "Progress Profil" : "Profile Progress"}</span>
+        <span className="text-muted-foreground">{tDash("profile.progress")}</span>
         <span className="text-primary">{progress}%</span>
       </div>
       <div className="w-full h-2 bg-muted/30 rounded-full overflow-hidden">
@@ -28,10 +29,7 @@ export function ProfileProgress({ sections, currentSection }: { sections: string
         />
       </div>
       <p className="text-[10px] text-muted-foreground mt-1">
-        {lang === "id" 
-          ? `Langkah ${currentIndex + 1} dari ${sections.length}: ${currentSection}`
-          : `Step ${currentIndex + 1} of ${sections.length}: ${currentSection}`
-        }
+        {tDash("profile.step", { current: currentIndex + 1, total: sections.length, name: currentSection })}
       </p>
     </div>
   );
@@ -39,7 +37,7 @@ export function ProfileProgress({ sections, currentSection }: { sections: string
 
 // AI Understanding Score Component
 export function AIUnderstandingScore({ score, insights }: { score: number; insights: string[] }) {
-  const { lang } = useApp();
+  const tDash = useTranslations("dashboard");
   
   const getColor = (s: number) => {
     if (s < 30) return "text-rose-500";
@@ -49,10 +47,10 @@ export function AIUnderstandingScore({ score, insights }: { score: number; insig
   };
   
   const getLabel = (s: number) => {
-    if (s < 30) return lang === "id" ? "Perlu Lengkap" : "Needs Completion";
-    if (s < 60) return lang === "id" ? "Cukup Lengkap" : "Moderately Complete";
-    if (s < 80) return lang === "id" ? "Sangat Lengkap" : "Very Complete";
-    return lang === "id" ? "Sempurna" : "Perfect";
+    if (s < 30) return tDash("home.completeness.needsCompletion");
+    if (s < 60) return tDash("home.completeness.moderatelyComplete");
+    if (s < 80) return tDash("home.completeness.veryComplete");
+    return tDash("home.completeness.perfect");
   };
   
   return (
@@ -65,7 +63,7 @@ export function AIUnderstandingScore({ score, insights }: { score: number; insig
             </svg>
           </div>
           <div>
-            <p className="text-xs font-bold text-foreground">{lang === "id" ? "Pemahaman AI" : "AI Understanding"}</p>
+            <p className="text-xs font-bold text-foreground">{tDash("home.aiUnderstanding")}</p>
             <p className="text-[10px] text-muted-foreground">{getLabel(score)}</p>
           </div>
         </div>
@@ -81,7 +79,7 @@ export function AIUnderstandingScore({ score, insights }: { score: number; insig
       
       {insights.length > 0 && (
         <div className="space-y-1">
-          <p className="text-[10px] font-bold text-primary uppercase">{lang === "id" ? "Insight AI" : "AI Insights"}</p>
+          <p className="text-[10px] font-bold text-primary uppercase">{tDash("home.aiInsightToday")}</p>
           {insights.slice(0, 3).map((insight, i) => (
             <p key={i} className="text-[10px] text-muted-foreground leading-relaxed">
               {insight}
@@ -95,8 +93,6 @@ export function AIUnderstandingScore({ score, insights }: { score: number; insig
 
 // Section Header Component
 export function SectionHeader({ title, icon: Icon, description }: { title: string; icon: any; description?: string }) {
-  const { lang } = useApp();
-  
   return (
     <div className="px-4 pt-5 pb-4 flex items-center gap-4 border-b border-border/10">
       <div className="relative shrink-0">
@@ -126,8 +122,6 @@ export function SectionTabs({
   currentSection: string; 
   onSelect: (id: string) => void 
 }) {
-  const { lang } = useApp();
-  
   return (
     <div className="flex gap-1 px-4 py-3 overflow-x-auto border-b border-border/10 shrink-0 select-none">
       {sections.map(({ id, label, icon: Icon }) => (
@@ -141,7 +135,7 @@ export function SectionTabs({
           }`}
         >
           <Icon className="w-3.5 h-3.5" />
-          {lang === "id" ? label : label}
+          {label}
         </button>
       ))}
     </div>
@@ -164,13 +158,13 @@ export function ToggleList({
   subtitle?: string;
   colorClass: string;
 }) {
-  const { lang } = useApp();
+  const tDash = useTranslations("dashboard");
   
   return (
     <div>
       <div className="mb-2">
         <p className="text-xs font-black text-foreground">{title}</p>
-        <p className="text-[10px] text-muted-foreground">{subtitle} · <span className={`${colorClass} font-bold`}>{selected.length} {lang === "id" ? "dipilih" : "selected"}</span></p>
+        <p className="text-[10px] text-muted-foreground">{subtitle} · <span className={`${colorClass} font-bold`}>{selected.length} {tDash("profile.selected")}</span></p>
       </div>
       <div className="flex flex-wrap gap-1.5">
         {items.map(item => {
@@ -206,8 +200,6 @@ export function FinancialInputGroup({
   onChange: (val: string) => void; 
   placeholder?: string 
 }) {
-  const { lang } = useApp();
-  
   return (
     <div>
       <label className="text-xs font-bold text-muted-foreground block mb-1.5">{label}</label>

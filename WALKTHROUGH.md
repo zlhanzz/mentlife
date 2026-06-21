@@ -1,51 +1,33 @@
-# WALKTHROUGH: Audit & Optimasi Tata Letak Halaman Keuangan
+# Walkthrough: Edge-Based Routing & Rate Limiting (Upstash / Cloudflare)
 
-**Tanggal**: 23 Mei 2026  
-**Status**: ✅ SELESAI & TERVERIFIKASI | 💯 TYPE-CHECK PASSED
-
----
+Dokumen ini menjelaskan daftar perubahan dan hasil pengujian untuk integrasi Edge-Based Routing & Rate Limiting menggunakan Upstash Redis di MentLife.
 
 ## 1. Daftar Perubahan
 
-### Front-end Tab Keuangan (`finance-tab.tsx`)
-* **Berkas**: [finance-tab.tsx](file:///c:/Users/ZHULL/Documents/MentLife%20Project/src/app/dashboard/finance-tab.tsx)
-* **Perubahan**:
-  1. **Pembersihan Elemen Antarmuka (Layout Audit)**:
-     - Menghapus komponen visual **Info Banner** ("Untuk memperbarui saldo utama/baseline keuangan, silakan buka menu di Tab Profil") karena membingungkan pengguna; saldo berjalan secara dinamis mengikuti mutasi pencatatan transaksi riil dan alokasi harian, sedangkan data profil murni berfungsi sebagai estimasi baseline awal.
-     - Menghapus komponen visual **AI Ledger** (Input Bar bahasa natural) agar halaman tab Keuangan menjadi lebih ringkas dan optimal untuk perangkat mobile, menyisakan pencatatan terstruktur melalui modal panel yang sudah ada.
-  2. **Pembersihan Logika & State (Dead Code Removal)**:
-     - Menghapus state NLP (`nlpInput`, `nlpLoading`, `nlpMsg`).
-     - Menghapus fungsi parser NLP lokal (`handleNlpSubmit`) beserta logika ekspresi reguler pendeteksi nominal bahasa Indonesia/Inggris di dalamnya.
-     - Menghapus import ikon `TrendingUp`, `TrendingDown`, `RefreshCw`, `Send`, `MessageSquare` dari `lucide-react` serta utilitas `getCurrencyConfig` yang tidak lagi digunakan untuk meminimalkan beban bundle.
-     - Memperbaiki binding properti `countryCode` pada komponen `FinanceDashboard` agar merujuk langsung ke `usersCore.country_code` guna menghindari error variabel tidak terdefinisi.
+* **[middleware.ts](file:///c:/Users/ZHULL/Documents/MentLife%20Project/src/middleware.ts)**:
+  - Membuat Next.js Edge Middleware terpadu.
+  - Mengintegrasikan Upstash `@upstash/ratelimit` dan `@upstash/redis` untuk rate limiting berbasis IP address di Edge.
+  - Menerapkan batasan 10 request per 10 detik untuk API sensitif (`/api/inngest`, `/api/chat`, dan seluruh request `POST` Server Actions).
+  - Menyediakan *fail-safe* graceful degradation: jika Redis tidak terkonfigurasi atau error saat runtime, request akan di-bypass secara otomatis.
+  - Melanjutkan routing ke `proxy` (Supabase auth & session routing).
+* **[.env.example](file:///c:/Users/ZHULL/Documents/MentLife%20Project/.env.example)** & **[.env.local](file:///c:/Users/ZHULL/Documents/MentLife%20Project/.env.local)**:
+  - Menambahkan baris konfigurasi `UPSTASH_REDIS_REST_URL` dan `UPSTASH_REDIS_REST_TOKEN`.
 
----
+## 2. Hasil Pengujian & Kompilasi
 
-## 2. Hasil Pengujian & Verifikasi
+* **TypeScript Compilation**:
+  - Berhasil menyelesaikan pengujian kompilasi dengan menjalankan `npx tsc --noEmit` yang menghasilkan **Zero Errors** (lulus kompilasi sukses).
 
-1. **Uji Kompilasi TypeScript**:
-   - Pemeriksaan tipe data proyek secara penuh dengan perintah:
-     ```bash
-     cmd /c npx --node-options="--max-old-space-size=4096" tsc --noEmit
-     ```
-     Berhasil dengan sukses tanpa ada error kompilasi (**Exit code 0** / **Success**).
-2. **Optimalisasi Tata Letak**:
-   - Tampilan visual dasbor Keuangan sekarang lebih elegan dan longgar. Hanya menyajikan:
-     - *Alert Mode Survival* (kondisional jika kas berada di zona merah).
-     - *Dashboard Utama (Sisa Kas, Dana Darurat, Utang, Investasi)*.
-     - *Tombol Catat Transaksi Terstruktur* (+ Pemasukan, - Pengeluaran, ⇄ Alokasi).
-     - *Riwayat Transaksi Cerdas*.
-3. **Kesiapan Mentor AI (MentLife AI)**:
-   - Mentor AI tetap dapat memberikan analisis finansial langsung sejak hari pertama menggunakan baseline estimasi awal yang disimpan pada data profil (`financial_profiles`), tanpa perlu memaksa pengguna menunggu pencatatan transaksi aktual mereka lengkap.
+## 3. Petunjuk Deploy & Menjalankan secara Lokal
 
----
-
-## 3. Petunjuk Deploy & Menjalankan Aplikasi
-
-Jalankan perintah berikut pada terminal Anda untuk meluncurkan server pengembangan lokal:
-
-```bash
-cmd /c npm run dev
-```
-
-Buka browser Anda ke `http://localhost:3000` (atau port alternatif) untuk melihat tampilan tab Keuangan yang baru saja dioptimalkan secara dinamis.
+1. Dapatkan kredensial Redis Serverless dari konsol [Upstash](https://upstash.com).
+2. Tambahkan variabel lingkungan berikut ke berkas `.env.local` Anda untuk mengaktifkan rate limiting secara riil:
+   ```env
+   UPSTASH_REDIS_REST_URL=https://nama-database.upstash.io
+   UPSTASH_REDIS_REST_TOKEN=token_rahasia_anda
+   ```
+   *Catatan: Jika variabel ini dikosongkan, middleware akan secara otomatis melakukan bypass agar proses development lokal Anda tidak terganggu.*
+3. Jalankan server lokal seperti biasa:
+   ```bash
+   npm run dev
+   ```

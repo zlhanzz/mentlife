@@ -1,5 +1,9 @@
 // AI Mentor Service
 
+import { callGemini } from "./ai-caller";
+import { createClient } from "@/lib/supabase/server";
+import { getCachedAI, setCachedAI, createCacheKey } from "./ai-cache";
+
 export interface AIRecommendations {
   targetGoal: string;
   advice: string;
@@ -50,6 +54,186 @@ function calculateAge(birthDateString: string): number {
     age--;
   }
   return age;
+}
+
+/**
+ * Preprocess raw text to escape unescaped newlines inside JSON string values.
+ * Walks character by character, tracking string state and escape sequences.
+ */
+function escapeNewlinesInStrings(raw: string): string {
+  let result = "";
+  let inString = false;
+  let escape = false;
+
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+
+    if (escape) {
+      // Previous char was backslash — this char is escaped
+      result += ch;
+      escape = false;
+      continue;
+    }
+
+    if (ch === "\\") {
+      result += ch;
+      escape = true;
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = !inString;
+      result += ch;
+      continue;
+    }
+
+    if (inString) {
+      // Escape control characters inside strings
+      if (ch === "\n" || ch === "\r") {
+        result += "\\n";
+        continue;
+      }
+      if (ch === "\t") {
+        result += "\\t";
+        continue;
+      }
+      if (ch === "\b") {
+        result += "\\b";
+        continue;
+      }
+      if (ch === "\f") {
+        result += "\\f";
+        continue;
+      }
+      // Escape other control characters (ASCII 0-31)
+      const code = ch.charCodeAt(0);
+      if (code < 32) {
+        result += "\\u" + code.toString(16).padStart(4, "0");
+        continue;
+      }
+    }
+
+    result += ch;
+  }
+
+  return result;
+}
+
+/**
+ * Repair truncated JSON by closing open strings and objects.
+ * Handles cases where AI response is cut off mid-string.
+ */
+function repairTruncatedJSON(raw: string): string {
+  let result = raw;
+  let inString = false;
+  let escape = false;
+  const stack: string[] = [];
+
+  // First, close any open string
+  for (let i = 0; i < result.length; i++) {
+    const ch = result[i];
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (ch === "\\") {
+      escape = true;
+      continue;
+    }
+    if (ch === '"') {
+      inString = !inString;
+    }
+    if (!inString) {
+      if (ch === "{" || ch === "[") {
+        stack.push(ch);
+      } else if (ch === "}" || ch === "]") {
+        stack.pop();
+      }
+    }
+  }
+
+  // Close open string if needed
+  if (inString) {
+    result += '"';
+  }
+
+  // Close open objects/arrays
+  while (stack.length > 0) {
+    const open = stack.pop()!;
+    if (open === "{") {
+      result += "}";
+    } else if (open === "[") {
+      result += "]";
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Safely parse JSON from Gemini responses.
+ * Gemini sometimes wraps JSON in markdown fences or includes extra text.
+ * Also handles unescaped newlines inside string values.
+ */
+function safeParseJSON<T>(raw: string): T {
+  let cleaned = raw.trim();
+
+  // Strip markdown code fences (```json ... ``` or ``` ... ```)
+  cleaned = cleaned.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/, "");
+
+  // Strip any leading/trailing text, find the first '{' or '['
+  const firstBrace = cleaned.indexOf("{");
+  const firstBracket = cleaned.indexOf("[");
+  let start = 0;
+  if (firstBrace >= 0 && (firstBracket < 0 || firstBrace < firstBracket)) {
+    start = firstBrace;
+  } else if (firstBracket >= 0) {
+    start = firstBracket;
+  }
+  if (start > 0) {
+    cleaned = cleaned.substring(start);
+  }
+
+  // Find matching close bracket (tracks string state)
+  let depth = 0;
+  let inStr = false;
+  let esc = false;
+  for (let i = 0; i < cleaned.length; i++) {
+    const ch = cleaned[i];
+    if (esc) { esc = false; continue; }
+    if (ch === "\\") { esc = true; continue; }
+    if (ch === '"') { inStr = !inStr; continue; }
+    if (inStr) continue;
+    if (ch === "{" || ch === "[") depth++;
+    else if (ch === "}" || ch === "]") {
+      depth--;
+      if (depth === 0) {
+        cleaned = cleaned.substring(0, i + 1);
+        break;
+      }
+    }
+  }
+
+  // Try parsing; if it fails, preprocess to escape unescaped control characters in strings
+  try {
+    return JSON.parse(cleaned) as T;
+  } catch (e) {
+    console.warn("[AI] Initial JSON parse failed, attempting repair:", (e as Error).message);
+    try {
+      const repaired = escapeNewlinesInStrings(cleaned);
+      return JSON.parse(repaired) as T;
+    } catch (e2) {
+      console.warn("[AI] Control character repair failed, attempting truncated JSON repair:", (e2 as Error).message);
+      try {
+        const truncatedRepaired = repairTruncatedJSON(cleaned);
+        return JSON.parse(truncatedRepaired) as T;
+      } catch (e3) {
+        console.error("[AI] All JSON repair attempts failed:", (e3 as Error).message);
+        console.error("[AI] Raw JSON (first 500 chars):", cleaned.substring(0, 500));
+        throw new Error(`Failed to parse AI response as JSON: ${(e3 as Error).message}`);
+      }
+    }
+  }
 }
 
 export async function getAIRecommendations(
@@ -116,21 +300,47 @@ export async function getAIRecommendations(
     has_physical_limitation?: boolean;
     physical_limitation_details?: string;
     work_devices?: string[];
+    device_brands?: Record<string, string>;
     mobility_assets?: string[];
     life_goal?: string;
   }
 ): Promise<AIRecommendations> {
-  const geminiApiKey = process.env.GEMINI_API_KEY;
   const currencySymbol = usersCore?.country_code === "SG" ? "S$" : usersCore?.country_code === "US" ? "$" : "Rp";
 
-  if (geminiApiKey) {
+  // ── DB Cache Check (replaces useless in-memory Map that dies on Vercel cold starts) ──
+  let userId: string | undefined;
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id;
+  } catch {}
+
+  const cacheKey = createCacheKey({
+    income: finance.monthly_income,
+    expenses: finance.fixed_expenses,
+    debt: finance.total_debt,
+    stage: finance.current_stage,
+    savings: finance.liquid_savings,
+    skills: profile.skills,
+    roadblock: usersCore?.current_roadblock,
+    financialState: usersCore?.financial_state_id,
+    health: usersCore?.health_baseline
+  });
+
+  if (userId) {
+    const cached = await getCachedAI<AIRecommendations>(userId, cacheKey, "recommendations");
+    if (cached) {
+      console.log("[AI] Cache HIT: Serving recommendations from DB cache (0 tokens).");
+      return cached;
+    }
+  }
+
+  if (process.env.GEMINI_API_KEY) {
     try {
       // Build instructions based on rules
       let healthInstruction = "";
       if (usersCore?.has_physical_limitation) {
         healthInstruction = `\n⚠️ STATUS KESEHATAN/FISIK PENGGUNA: KETERBATASAN FISIK (${usersCore.physical_limitation_details || "tidak dijelaskan secara rinci"}). JANGAN menyarankan pekerjaan lapangan atau fisik yang mustahil dikerjakan. Arahkan murni ke tugas digital/manajerial yang sesuai dengan keterbatasan fisiknya.`;
-      } else if (usersCore?.health_baseline === "burnout_alert") {
-        healthInstruction = `\n⚠️ STATUS KESEHATAN PENGGUNA: ALARM BURNOUT. JANGAN menyarankan side-hustle tambahan atau beban produktivitas tinggi. Fokuskan saran pada pemulihan, istirahat, efisiensi waktu, dan kesehatan mental.`;
       } else if (usersCore?.health_baseline === "physical_limitation") {
         healthInstruction = `\n⚠️ STATUS KESEHATAN PENGGUNA: KETERBATASAN FISIK. JANGAN menyarankan pekerjaan lapangan atau fisik. Rekomendasikan hanya pekerjaan digital/intelektual.`;
       }
@@ -140,6 +350,12 @@ export async function getAIRecommendations(
       const mobilityAssets = usersCore?.mobility_assets || [];
       
       assetInstruction += `\n- Perangkat kerja utama: ${workDevices.join(", ") || "Tidak ada perangkat kerja tercantum"}.`;
+      // Include brand details if available
+      const deviceBrands = usersCore?.device_brands || {};
+      const brandEntries = Object.entries(deviceBrands).filter(([, v]) => v?.trim());
+      if (brandEntries.length > 0) {
+        assetInstruction += `\n- Detail merek/tipe perangkat: ${brandEntries.map(([k, v]) => `${k} = ${v}`).join("; ")}. Gunakan informasi merek ini untuk menilai kemampuan spesifikasi perangkat secara lebih akurat.`;
+      }
       assetInstruction += `\n- Aset mobilitas: ${mobilityAssets.join(", ") || "Tidak ada aset mobilitas tercantum"}.`;
       
       if (workDevices.length > 0) {
@@ -198,8 +414,6 @@ export async function getAIRecommendations(
         roadblockInstruction = `\n⚠️ HAMBATAN UTAMA: Sulit Menabung. Selipkan saran praktis tentang pelacakan pengeluaran kecil (leakage), teknik budgeting otomatis di awal bulan, dan pemisahan rekening tabungan.`;
       } else if (usersCore?.current_roadblock === "arah_karir") {
         roadblockInstruction = `\n⚠️ HAMBATAN UTAMA: Bingung Arah Karir. Selipkan saran eksplorasi diri berbasis Ikigai, identifikasi skill gap, riset demand pasar, dan cara membangun portfolio.`;
-      } else if (usersCore?.current_roadblock === "burnout_lelah") {
-        roadblockInstruction = `\n⚠️ HAMBATAN UTAMA: Burnout & Lelah. Prioritaskan saran pemulihan energi, pembatasan jam kerja, pendelegasian, dan pencegahan stress fisik/mental sebelum mendorong karir/finansial secara agresif.`;
       } else if (usersCore?.current_roadblock === "kurang_disiplin") {
         roadblockInstruction = `\n⚠️ HAMBATAN UTAMA: Kurang Disiplin. Sajikan tugas atau action plan dalam bentuk langkah-langkah mikro (micro-steps) yang sangat mudah dimulai (kurang dari 10 menit) untuk membangun momentum.`;
       }
@@ -289,32 +503,35 @@ export async function getAIRecommendations(
         }
       `;
  
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              responseMimeType: "application/json",
-            },
-          }),
-        }
-      );
- 
-      const json = await response.json();
-      const text = json.candidates[0].content.parts[0].text;
-      return JSON.parse(text) as AIRecommendations;
+      const result = await callGemini({
+        prompt,
+        responseFormat: "json",
+        maxTokens: 2048,  // 2.5-flash is a thinking model, needs room for reasoning + JSON
+      }, { userId, callType: "recommendations" });
+
+      const parsed = safeParseJSON<AIRecommendations>(result.text);
+
+      // Save to DB cache before returning
+      if (userId) {
+        await setCachedAI(userId, cacheKey, "recommendations", parsed);
+      }
+      return parsed;
     } catch (e) {
       console.error("Gemini API call failed, using fallback generator:", e);
     }
   }
  
+  return getFallbackRecommendations(profile, finance, usersCore, currencySymbol);
+}
+
+function getFallbackRecommendations(
+  profile: any,
+  finance: any,
+  usersCore: any,
+  currencySymbol: string
+): AIRecommendations {
   // Smart Fallback Generator (Ikigai Oriented + Constraints Aware)
-  const skillsStr = profile.skills.slice(0, 2).join(" & ") || "Analisis";
+  const skillsStr = profile.skills?.slice(0, 2).join(" & ") || "Analisis";
   const hobbiesStr = profile.hobbies.slice(0, 2).join(" & ") || "Harian";
   const interest = profile.interests[0] || "pengembangan diri";
   const hasLaptop = usersCore?.owned_assets?.includes("laptop") ?? true;
@@ -348,31 +565,6 @@ export async function getAIRecommendations(
         relevance: `Bermanfaat untuk mengurangi defisit arus kas.`,
         ikigaiMatch: 80,
         ikigaiAnalysis: `Mengamankan sisa kas bernilai sama pentingnya dengan menambah pemasukan.`
-      }
-    ];
-  } else if (usersCore?.health_baseline === "burnout_alert") {
-    targetGoal = `Pemulihan Energi & Manajemen Burnout`;
-    advice = `Anda sedang dalam alarm burnout. Jangan mengambil pekerjaan tambahan yang melelahkan. Fokus pada efisiensi jam kerja utama dan istirahat yang cukup.`;
-    dailyInsight = "Kesehatan Anda adalah aset investasi terbesar. Istirahat sejenak untuk melangkah lebih jauh.";
-    
-    sideHustles = [
-      {
-        title: `Fokus Istirahat & Meditasi`,
-        description: `Sisihkan waktu luang harian Anda (${usersCore?.daily_free_hours || 2} jam) untuk memulihkan stres fisik dan mental.`,
-        difficulty: "Mudah",
-        estimatedIncome: `${currencySymbol}0`,
-        relevance: `Sesuai kondisi burnout alert Anda agar tidak memperparah stres.`,
-        ikigaiMatch: 95,
-        ikigaiAnalysis: `Menjaga keseimbangan hidup sebelum siap mengeksplorasi peluang karir kembali.`
-      },
-      {
-        title: `Optimalkan Waktu Luang Harian`,
-        description: `Rampingkan rutinitas Anda dan delegasikan tugas non-esensial untuk mengurangi kelelahan mental.`,
-        difficulty: "Mudah",
-        estimatedIncome: `${currencySymbol}0`,
-        relevance: `Cocok karena Anda memiliki waktu luang harian terbatas sebesar ${usersCore?.daily_free_hours || 2} jam.`,
-        ikigaiMatch: 90,
-        ikigaiAnalysis: `Mengelola waktu secara seimbang merupakan pondasi penting Ikigai.`
       }
     ];
   } else if (finance.current_stage === "DEBT") {
@@ -486,9 +678,7 @@ export async function getDecisionProjection(
   description: string,
   horizonYears: number
 ): Promise<DecisionProjectionResult> {
-  const geminiApiKey = process.env.GEMINI_API_KEY;
-
-  if (geminiApiKey) {
+  if (process.env.GEMINI_API_KEY) {
     try {
       const prompt = `
         Anda adalah Mentlife AI, simulator keputusan karir dan keuangan profesional ("Mirofish").
@@ -514,25 +704,13 @@ export async function getDecisionProjection(
         }
       `;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              responseMimeType: "application/json",
-            },
-          }),
-        }
-      );
+      const result = await callGemini({
+        prompt,
+        responseFormat: "json",
+        maxTokens: 1536,  // thinking model overhead
+      }, { callType: "decision_projection" });
 
-      const json = await response.json();
-      const text = json.candidates[0].content.parts[0].text;
-      return JSON.parse(text) as DecisionProjectionResult;
+      return safeParseJSON<DecisionProjectionResult>(result.text);
     } catch (e) {
       console.error("Gemini decision simulation failed, using fallback:", e);
     }
@@ -599,9 +777,7 @@ export async function extractDataFromChat(
   content: string,
   chatHistory: string[]
 ): Promise<ChatExtractionResult> {
-  const geminiApiKey = process.env.GEMINI_API_KEY;
-
-  if (geminiApiKey) {
+  if (process.env.GEMINI_API_KEY) {
     try {
       const prompt = `
         Anda adalah AI Data Extractor untuk aplikasi MentLife. Tugas Anda adalah menganalisis pesan percakapan terakhir pengguna dan mengekstrak informasi terstruktur jika pengguna menceritakan atau memperbarui kondisi demografi, aset, keuangan, hobi, keahlian, atau tujuan hidup mereka.
@@ -611,7 +787,7 @@ export async function extractDataFromChat(
            - formal_status harus salah satu dari: 'Mahasiswa', 'Karyawan', 'Pengusaha', 'Freelancer', 'Menganggur'.
            - risk_profile harus salah satu dari: 'konservatif', 'moderat', 'agresif'.
            - marital_status harus salah satu dari: 'single', 'married', 'previously_married', 'pacaran'.
-           - health_baseline harus salah satu dari: 'fit', 'physical_limitation', 'burnout_alert'.
+           - health_baseline harus salah satu dari: 'fit' atau 'physical_limitation' (deteksi 'physical_limitation' hanya jika cedera/sakit fisik eksplisit).
            - country_code harus berupa kode ISO Alpha-2 2-karakter (misal: 'ID', 'SG', 'US').
         2. "financial_ledger": Jika pengguna menyebutkan transaksi baru (income/expense) yang baru terjadi atau sedang berjalan. Kategori harus salah satu dari: 'kebutuhan_dasar', 'sewa', 'variabel', 'investasi', 'cicilan_hutang'. Tipe hutang (debt_type) jika relevan: 'high_interest_toxic', 'bank_standard', 'family_zero_interest', 'none'.
         3. "ikigai_vectors": Pernyataan tentang passion (hobi/suka), skill (keahlian), market_demand, life_goal, atau social_capital (koneksi/modal sosial).
@@ -631,28 +807,17 @@ export async function extractDataFromChat(
         - Jangan mengarang data. Hanya ekstrak jika secara eksplisit atau sangat kuat diimplikasikan oleh pesan pengguna.
         - Untuk "users_core.country_code", gunakan standar ISO Alpha-2 (ID/SG/US) jika disebutkan secara eksplisit.
         - Untuk "users_core.owned_assets", kumpulkan aset seperti motor, laptop, mobil, rumah, dll.
-        - "users_core.health_baseline" dapat diekstrak menjadi 'burnout_alert' jika user bercerita lelah/burnout, 'physical_limitation' jika cedera/sakit fisik, atau 'fit'.
+        - "users_core.health_baseline" hanya diekstrak jika user menyebut cedera/sakit fisik eksplisit → 'physical_limitation', selain itu default 'fit'.
       `;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              responseMimeType: "application/json",
-            },
-          }),
-        }
-      );
+      const result = await callGemini({
+        prompt,
+        responseFormat: "json",
+        maxTokens: 256,
+        model: "lite",  // Simple extraction = economy model (higher free-tier quota)
+      }, { callType: "data_extraction" });
 
-      const json = await response.json();
-      const text = json.candidates[0].content.parts[0].text;
-      return JSON.parse(text) as ChatExtractionResult;
+      return safeParseJSON<ChatExtractionResult>(result.text);
     } catch (e) {
       console.error("Gemini data extraction failed, using fallback:", e);
     }
@@ -672,8 +837,7 @@ export async function extractDataFromChat(
 
   // 2. Detect health_baseline
   let health_baseline: any;
-  if (lower.includes("burnout") || lower.includes("capek") || lower.includes("lelah") || lower.includes("stres") || lower.includes("stress") || lower.includes("letih")) health_baseline = "burnout_alert";
-  else if (lower.includes("cedera") || lower.includes("sakit") || lower.includes("lumpuh") || lower.includes("fisik terganggu") || lower.includes("difabel")) health_baseline = "physical_limitation";
+  if (lower.includes("cedera") || lower.includes("sakit") || lower.includes("lumpuh") || lower.includes("fisik terganggu") || lower.includes("difabel")) health_baseline = "physical_limitation";
   else if (lower.includes("bugar") || lower.includes("sehat") || lower.includes("fit")) health_baseline = "fit";
 
   // 3. Detect marital_status
@@ -778,5 +942,317 @@ export async function extractDataFromChat(
   }
 
   return result;
+}
+
+// ── Onboarding Step Curation (Lite Model) ──
+// Lightweight AI analysis per onboarding step. Returns a short insight
+// about the user's position in the financial/career framework.
+// Uses gemini-2.5-flash-lite for token efficiency (~50-100 tokens per call).
+
+export interface StepCurationResult {
+  insight: string;       // Short 1-2 sentence AI insight
+  tanggaLevel: number;   // Current Tangga level (0-3)
+  tanggaName: string;    // Tangga name
+  mode: string;          // Survival/Stabilitas/Pertumbuhan
+  positionSummary: string; // Brief position summary
+}
+
+const STEP_CURATION_PROMPTS: Record<number, string> = {
+  0: "Pengguna baru saja memberikan data identitas dasar (nama, tanggal lahir, domisili). Berikan sambutan hangat singkat dan konfirmasi bahwa data ini membantu AI menyesuaikan konteks geografis dan demografis.",
+  1: "Pengguna baru saja memberikan data keahlian dan pengalaman kerja. Analisis singkat: apakah skill mereka cukup untuk monetisasi cepat? Apakah ada skill gap yang perlu ditutup? Berikan 1 kalimat insight tentang potensi karir mereka.",
+  2: "Pengguna baru saja memberikan data hobi dan minat. Analisis: apakah ada irisan antara skill (dari step sebelumnya) dengan hobi/minat yang bisa jadi peluang Ikigai? Berikan 1 kalimat insight.",
+  3: "Pengguna baru saja memberikan data keuangan (pendapatan, pengeluaran, tabungan, hutang). Hitung: cashflow bulanan, saving rate, runway bulan. Tentukan posisi Tangga Finansial (0-3) dan Mode (Survival/Stabilitas/Pertumbuhan). Berikan 1 kalimat insight tegas tentang kondisi keuangan mereka.",
+  4: "Pengguna baru saja memberikan data karir dan tujuan hidup. Analisis: apakah tujuan hidup mereka realistis dengan kondisi keuangan saat ini? Berikan 1 kalimat insight tentang alignment karir-keuangan.",
+  5: "Pengguna baru saja memberikan data tempat tinggal dan aset produktif. Analisis: apakah aset mereka mendukung strategi monetisasi? Berikan 1 kalimat insight tentang kesiapan eksekusi.",
+  6: "Semua data onboarding telah terkumpul. Berikan analisis KOMPREHENSIF dalam 2-3 kalimat tentang: (1) posisi Tangga Finansial dan Mode pengguna, (2) kekuatan utama mereka berdasarkan skill+aset, (3) 1 prioritas paling kritis untuk 30 hari ke depan. Bahasa Indonesia, tegas, profesional, tanpa sapaan.",
+};
+
+export async function curateOnboardingStep(
+  step: number,
+  collectedData: {
+    name?: string;
+    birthDate?: string;
+    domicile?: string;
+    dependents?: string;
+    skills?: string[];
+    experience?: string;
+    hobbies?: string[];
+    interests?: string[];
+    income?: number;
+    expenses?: number;
+    savings?: number;
+    investment?: number;
+    debt?: number;
+    gender?: string;
+    insurance?: string;
+    investmentExperience?: string[];
+    formalStatus?: string;
+    educationHistory?: string[];
+    careerGoal?: string;
+    lifeGoal?: string;
+    dailyFreeHours?: number;
+    livingSituation?: string;
+    workDevices?: string[];
+    deviceBrands?: Record<string, string>;
+    mobilityAssets?: string[];
+  }
+): Promise<StepCurationResult> {
+  // Compute Tangga & Mode client-equivalent (no AI needed for math)
+  const income = collectedData.income || 0;
+  const expenses = collectedData.expenses || 0;
+  const debt = collectedData.debt || 0;
+  const savings = collectedData.savings || 0;
+  const cashflow = income - expenses;
+  const runway = expenses > 0 ? savings / expenses : 0;
+
+  let tanggaLevel = 2;
+  let tanggaName = "Dana Darurat";
+  if (income === 0 && savings < 10_000_000) { tanggaLevel = 0; tanggaName = "Income Starter"; }
+  else if (debt > 0) { tanggaLevel = 1; tanggaName = "Bebas Hutang"; }
+  else if (savings < expenses * 3) { tanggaLevel = 2; tanggaName = "Dana Darurat"; }
+  else if (cashflow > 0 && runway >= 6) { tanggaLevel = 3; tanggaName = "Investasi 20%"; }
+
+  let mode = "Stabilitas";
+  if (cashflow < 0 || runway < 3) mode = "Survival";
+  else if (runway >= 6 && debt === 0 && cashflow > 0) mode = "Pertumbuhan";
+
+  const positionSummary = `Tangga ${tanggaLevel}: ${tanggaName} | Mode ${mode} | Cashflow Rp${cashflow.toLocaleString("id-ID")}/bln | Runway ${runway.toFixed(1)} bulan`;
+
+  if (!process.env.GEMINI_API_KEY) {
+    // Fallback: deterministic insight based on step + data
+    return {
+      insight: getFallbackStepInsight(step, collectedData, tanggaLevel, tanggaName, mode),
+      tanggaLevel, tanggaName, mode, positionSummary,
+    };
+  }
+
+  try {
+    const prompt = `${STEP_CURATION_PROMPTS[step] || "Berikan insight singkat tentang data yang baru saja dikumpulkan."}
+
+Data yang terkumpul sejauh ini:
+- Nama: ${collectedData.name || "—"}
+- Domisili: ${collectedData.domicile || "—"}
+- Tanggungan: ${collectedData.dependents || "Tidak ada"}
+- Keahlian: ${(collectedData.skills || []).join(", ") || "—"}
+- Pengalaman: ${collectedData.experience || "—"}
+- Hobi: ${(collectedData.hobbies || []).join(", ") || "—"}
+- Minat: ${(collectedData.interests || []).join(", ") || "—"}
+- Pendapatan: Rp${income.toLocaleString("id-ID")}/bln
+- Pengeluaran: Rp${expenses.toLocaleString("id-ID")}/bln
+- Tabungan: Rp${savings.toLocaleString("id-ID")}
+- Investasi: Rp${(collectedData.investment || 0).toLocaleString("id-ID")}
+- Pengalaman Investasi: ${(collectedData.investmentExperience || []).join(", ") || "Belum pernah"}
+- Hutang: Rp${debt.toLocaleString("id-ID")}
+- Status: ${collectedData.formalStatus || "—"}
+- Pendidikan: ${(collectedData.educationHistory || []).join(", ") || "—"}
+- Target Karir: ${collectedData.careerGoal || "—"}
+- Tujuan Hidup: ${collectedData.lifeGoal || "—"}
+- Kapasitas Eksekusi: ${collectedData.dailyFreeHours || 0} jam/hari
+- Gender: ${collectedData.gender || "—"}
+- Asuransi: ${collectedData.insurance || "—"}
+- Tempat Tinggal: ${collectedData.livingSituation || "—"}
+- Perangkat: ${(collectedData.workDevices || []).join(", ") || "—"}
+${Object.entries(collectedData.deviceBrands || {}).filter(([, v]) => v?.trim()).map(([k, v]) => `  - ${k}: ${v}`).join("\n") || ""}
+- Mobilitas: ${(collectedData.mobilityAssets || []).join(", ") || "—"}
+
+Posisi Sistem: Tangga ${tanggaLevel}: ${tanggaName} | Mode ${mode}
+
+Berikan ${step === 6 ? "2-3 kalimat analisis komprehensif" : "HANYA 1 kalimat insight singkat (maksimal 20 kata)"} dalam bahasa Indonesia yang tegas dan profesional tentang posisi pengguna saat ini dan apa yang paling penting untuk mereka fokuskan selanjutnya. Jangan gunakan sapaan atau basa-basi.`;
+
+    const result = await callGemini({
+      prompt,
+      responseFormat: "text",
+      maxTokens: 256,
+      model: "lite",
+    }, { callType: "onboarding_curation" });
+
+    const insight = result.text.trim().replace(/^["']|["']$/g, "");
+
+    return {
+      insight: insight || getFallbackStepInsight(step, collectedData, tanggaLevel, tanggaName, mode),
+      tanggaLevel, tanggaName, mode, positionSummary,
+    };
+  } catch (e) {
+    console.error("Step curation AI failed, using fallback:", e);
+    return {
+      insight: getFallbackStepInsight(step, collectedData, tanggaLevel, tanggaName, mode),
+      tanggaLevel, tanggaName, mode, positionSummary,
+    };
+  }
+}
+
+function getFallbackStepInsight(
+  step: number,
+  data: { income?: number; expenses?: number; debt?: number; skills?: string[] },
+  tanggaLevel: number,
+  tanggaName: string,
+  mode: string
+): string {
+  const fallbacks: Record<number, string> = {
+    0: "Data identitas tercatat. AI akan menyesuaikan strategi berdasarkan konteks demografis Anda.",
+    1: `${(data.skills || []).length} keahlian terdeteksi. ${data.skills && data.skills.length >= 3 ? "Portfolio skill cukup solid untuk monetisasi." : "Perlu ekspansi skill untuk meningkatkan peluang income."}`,
+    2: "Hobi dan minat terekam. AI akan mencari irisan Ikigai antara passion dan keahlian Anda.",
+    3: `Posisi: Tangga ${tanggaLevel} (${tanggaName}). Mode ${mode}. ${mode === "Survival" ? "Fokus absolut: amankan cashflow dan lunasi hutang." : mode === "Pertumbuhan" ? "Fondasi solid. Siap ekspansi investasi." : "Perkuat dana darurat sebelum investasi."}`,
+    4: "Tujuan hidup dan karir tercatat. AI akan menyelaraskan strategi dengan North Star Anda.",
+    5: "Aset dan perangkat kerja terekam. AI akan menyesuaikan rekomendasi dengan kapasitas eksekusi Anda.",
+    6: `Analisis lengkap: Tangga ${tanggaLevel} (${tanggaName}), Mode ${mode}. ${(data.skills || []).length} keahlian + aset produktif terdeteksi. Prioritas 30 hari: ${mode === "Survival" ? "amankan cashflow positif dan lunasi hutang konsumtif" : mode === "Pertumbuhan" ? "mulai alokasi 20% pendapatan ke instrumen investasi" : "bangun dana darurat minimal 3x pengeluaran bulanan"}.`,
+  };
+  return fallbacks[step] || "Data berhasil dikumpulkan.";
+}
+
+// ── Welcome Page AI Analysis ──
+// Real Gemini-generated diagnosis + solution for the welcome page.
+// Produces a natural, mentor-style narrative — NOT a template.
+
+export interface WelcomeAnalysisResult {
+  greeting: string;
+  diagnosis: string;
+  solution: string;
+}
+
+export async function generateWelcomeAnalysis(data: {
+  name: string;
+  birthDate?: string;
+  domicile?: string;
+  dependents?: string;
+  skills?: string[];
+  experience?: string;
+  hobbies?: string[];
+  interests?: string[];
+  income?: number;
+  expenses?: number;
+  savings?: number;
+  investment?: number;
+  debt?: number;
+  debtHighInterest?: string;
+  debtProductive?: string;
+  debtZeroInterest?: string;
+  investmentExperience?: string[];
+  riskProfile?: string;
+  formalStatus?: string;
+  careerGoal?: string;
+  lifeGoal?: string;
+  dailyFreeHours?: number;
+  livingSituation?: string;
+  workDevices?: string[];
+  deviceBrands?: Record<string, string>;
+  mobilityAssets?: string[];
+  gender?: string;
+  insurance?: string;
+  tanggaLevel?: number;
+  tanggaName?: string;
+  mode?: string;
+}): Promise<WelcomeAnalysisResult> {
+  const income = Number(data.income || 0);
+  const expenses = Number(data.expenses || 0);
+  const savings = Number(data.savings || 0);
+  const investment = Number(data.investment || 0);
+  const debt = Number(data.debt || 0);
+  const cashflow = income - expenses;
+  const runway = expenses > 0 ? (savings / expenses).toFixed(1) : "0";
+  const name = data.name || "User";
+  const BT = String.fromCharCode(96); // backtick character
+
+  console.log("[Welcome Analysis] Called for:", name, "| API Key:", process.env.GEMINI_API_KEY ? "present (" + process.env.GEMINI_API_KEY.length + " chars)" : "MISSING");
+
+  if (!process.env.GEMINI_API_KEY) {
+    return {
+      greeting: `Halo ${name}! Selamat datang di Mentlife.`,
+      diagnosis: "Data keuangan Anda telah kami analisis. Fondasi keuangan Anda perlu diperkuat secara bertahap.",
+      solution: "Kita akan mulai dari langkah paling dasar dan membangun satu per satu. Saya akan temani Anda di setiap langkahnya.",
+    };
+  }
+
+  try {
+    const prompt = `Anda adalah Mentlife AI — mentor keuangan dan karir pribadi yang empatis, cerdas, dan realistis.
+
+Seorang pengguna baru saja menyelesaikan onboarding. Anda telah membaca SEMUA data mereka. Sekarang, tulis sambutan personal yang alami dan hangat.
+
+DATA PENGGUNA:
+- Nama: ${name}
+- Usia: ${data.birthDate ? calculateAge(data.birthDate) + " tahun" : "Tidak diketahui"}
+- Domisili: ${data.domicile || "Tidak diketahui"}
+- Status: ${data.formalStatus || "Tidak diketahui"}
+- Tanggungan: ${data.dependents || "Tidak ada"}
+- Keahlian: ${(data.skills || []).join(", ") || "Tidak ada"}
+- Pengalaman: ${data.experience || "Tidak ada"}
+- Hobi: ${(data.hobbies || []).join(", ") || "Tidak ada"}
+- Minat: ${(data.interests || []).join(", ") || "Tidak ada"}
+- Pendapatan: Rp${income.toLocaleString("id-ID")}/bln
+- Pengeluaran: Rp${expenses.toLocaleString("id-ID")}/bln
+- Cashflow: Rp${cashflow.toLocaleString("id-ID")}/bln (${cashflow >= 0 ? "surplus" : "defisit"})
+- Tabungan: Rp${savings.toLocaleString("id-ID")}
+- Investasi: Rp${investment.toLocaleString("id-ID")}
+- Hutang: Rp${debt.toLocaleString("id-ID")}
+- Runway: ${runway} bulan
+- Tujuan Hidup: ${data.lifeGoal || "Belum ditentukan"}
+- Target Karir: ${data.careerGoal || "Belum ditentukan"}
+- Waktu Luang: ${data.dailyFreeHours || 0} jam/hari
+- Tempat Tinggal: ${data.livingSituation || "Tidak diketahui"}
+- Perangkat: ${(data.workDevices || []).join(", ") || "Tidak ada"}
+${Object.entries(data.deviceBrands || {}).filter(([, v]) => v?.trim()).map(([k, v]) => `  - ${k}: ${v}`).join("\n") || ""}
+- Mobilitas: ${(data.mobilityAssets || []).join(", ") || "Tidak ada"}
+- Posisi Tangga: ${data.tanggaLevel || 0} - ${data.tanggaName || "Income Starter"}
+- Mode: ${data.mode || "Stabilitas"}
+
+TULIS 3 BAGIAN (dalam bahasa Indonesia, nada hangat seperti mentor yang tulus):
+
+1. "greeting" — Sapaan pembuka singkat (1 kalimat), gunakan nama mereka. Buat terasa personal dan optimis.
+
+2. "diagnosis" — "Yang Saya Lihat": Analisis jujur kondisi keuangan mereka. JANGAN ulang data mentah. Sintesis — katakan apa ARTINYA. Contoh:
+   - Kalau cashflow negatif: "Setiap bulan Anda jalan minus, dan itu yang bikin susah maju."
+   - Kalau punya skill digital + waktu luang: "Keahlian digital yang Anda punya itu aset nyata yang bisa langsung dimonetisasi."
+   - Kalau hutang tinggi: "Beban hutang sedang menyedot potensi Anda untuk tumbuh."
+   Gabungkan observasi menjadi narasi mengalir (3-5 kalimat). Akui yang buruk TAPI juga soroti kekuatan mereka.
+
+3. "solution" — "Arah Program": Gambaran umum solusi yang akan mereka jalani bersama Mentlife. Jangan kaku/checklist. Buat seperti mentor yang menjelaskan rencana:
+   - Kalau kondisi kritis: fokus stabilisasi cashflow + income tambahan
+   - Kalau sedang: perkuat fondasi + lunasi hutang
+   - kalau sehat: optimasi + investasi + pertumbuhan
+   Hubungkan ke tujuan hidup mereka jika ada. (2-4 kalimat)
+
+ATURAN:
+- Bahasa Indonesia, conversational tapi profesional
+- JANGAN mengulang angka/data mentah kecuali untuk penekanan
+- JANGAN gunakan format list/bullet
+- Tulis seperti Anda benar-benar mengenal mereka
+- Nada: hangat, jujur, optimis tapi realistis
+
+Format output (HANYA ini, tanpa teks lain):
+${BT}${BT}${BT}json
+{
+  "greeting": "...",
+  "diagnosis": "...",
+  "solution": "..."
+}
+${BT}${BT}${BT}`;
+
+    const result = await callGemini({
+      prompt,
+      responseFormat: "text",
+      maxTokens: 2048,
+      model: "flash",
+      temperature: 0.8,
+    }, { callType: "welcome_analysis" });
+
+    console.log("[Welcome Analysis] Raw response (first 200 chars):", result.text.substring(0, 200));
+
+    const parsed = safeParseJSON<WelcomeAnalysisResult>(result.text);
+    console.log("[Welcome Analysis] Parsed:", JSON.stringify(parsed).substring(0, 200));
+
+    return {
+      greeting: parsed.greeting || `Halo ${name}! Selamat datang di Mentlife.`,
+      diagnosis: parsed.diagnosis || "Data keuangan Anda telah kami analisis.",
+      solution: parsed.solution || "Kita akan mulai dari langkah paling dasar dan membangun bersama.",
+    };
+  } catch (e: any) {
+    console.error("[Welcome Analysis] AI call failed:", e?.message || e);
+    console.error("[Welcome Analysis] Stack:", e?.stack);
+    return {
+      greeting: `Halo ${name}! Selamat datang di Mentlife.`,
+      diagnosis: "Data keuangan Anda telah kami analisis. Fondasi keuangan Anda perlu diperkuat secara bertahap.",
+      solution: "Kita akan mulai dari langkah paling dasar dan membangun satu per satu. Saya akan temani Anda di setiap langkahnya.",
+    };
+  }
 }
 

@@ -1,10 +1,22 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, BrainCircuit, Target, Wallet } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/navigation";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import LocaleSwitcher from "@/components/locale-switcher";
 
-export default function Home() {
+export default async function Home(props: { params: Promise<{ locale: string }> }) {
+  const { locale } = await props.params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "landing" });
+  const tCommon = await getTranslations({ locale, namespace: "common" });
+
   return (
     <div className="flex-1 flex flex-col pt-12 pb-8 px-6 bg-gradient-to-b from-background to-background/50">
+      {/* Locale Switcher */}
+      <div className="absolute top-4 right-4">
+        <LocaleSwitcher />
+      </div>
+
       {/* Header */}
       <div className="flex justify-center mb-8">
         <div className="bg-primary/10 p-3 rounded-2xl ring-1 ring-primary/20 shadow-[0_0_40px_-10px_rgba(var(--primary),0.3)]">
@@ -18,7 +30,7 @@ export default function Home() {
           Mentlife
         </h1>
         <p className="text-muted-foreground text-lg leading-relaxed max-w-[280px]">
-          Your AI personal mentor for mastering finance and accelerating your career.
+          {t("heroSubtitle")}
         </p>
       </div>
 
@@ -29,8 +41,8 @@ export default function Home() {
             <Wallet className="w-5 h-5" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-foreground">Smart Finance</h3>
-            <p className="text-sm text-muted-foreground">Track and optimize your wealth</p>
+            <h3 className="font-semibold text-foreground">{t("features.finance.title")}</h3>
+            <p className="text-sm text-muted-foreground">{t("features.finance.desc")}</p>
           </div>
         </div>
 
@@ -39,8 +51,8 @@ export default function Home() {
             <Target className="w-5 h-5" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-foreground">Career Growth</h3>
-            <p className="text-sm text-muted-foreground">AI-driven path to success</p>
+            <h3 className="font-semibold text-foreground">{t("features.career.title")}</h3>
+            <p className="text-sm text-muted-foreground">{t("features.career.desc")}</p>
           </div>
         </div>
       </div>
@@ -49,12 +61,12 @@ export default function Home() {
       <div className="mt-12 flex flex-col space-y-3">
         <Link href="/login" className="w-full">
           <Button size="lg" className="w-full rounded-xl text-base h-14 font-semibold group">
-            Get Started
+            {t("cta.button")}
             <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
           </Button>
         </Link>
         <p className="text-xs text-center text-muted-foreground">
-          By continuing, you agree to our Terms of Service and Privacy Policy.
+          {t("cta.legal")}
         </p>
       </div>
     </div>

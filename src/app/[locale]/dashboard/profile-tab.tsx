@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { updateProfileAction, updateSandboxAction } from "@/features/dashboard/actions";
 import { logoutAction } from "@/features/auth/actions";
 import { useApp } from "@/context/app-context";
+import { useTranslations } from "next-intl";
 import {
   User, Briefcase, Star, Wallet, Menu,
   LogOut, Save, Plus, BrainCircuit, Heart, Target, Shield, Zap, MapPin, Accessibility, Laptop, Milestone, Info, Loader2,
@@ -37,6 +38,7 @@ interface ProfileTabProps {
 
 export default function ProfileTab({ profile, finance, usersCore, aiInsights, extendedProfile }: ProfileTabProps) {
   const { theme, setTheme, lang, setLang } = useApp();
+  const tDash = useTranslations("dashboard");
   const [isPending, startTransition] = useTransition();
   const [section, setSection] = useState<"personal" | "career" | "finance">("personal");
   const [saveMsg, setSaveMsg] = useState("");
@@ -170,7 +172,7 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
       (error) => {
         console.error(error);
         setDetectingGeo(false);
-        alert(lang === "id" ? "Gagal mendeteksi lokasi otomatis. Silakan ketik manual." : "Failed to detect location. Please type manually.");
+        alert(tDash("profile.locationFailed"));
       },
       { timeout: 10000 }
     );
@@ -256,7 +258,7 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
       });
 
       if (res1.success && res2.success) {
-        setSaveMsg(lang === "id" ? "Profil & Parameter AI berhasil diperbarui!" : "Profile & AI parameters updated!");
+        setSaveMsg(tDash("profile.profileUpdated"));
       } else {
         setSaveMsg(res1.message || res2.message);
       }
@@ -270,14 +272,14 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
   const textareaCls = "w-full px-3 py-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:border-primary transition-colors resize-none";
 
   const sections = [
-    { id: "personal" as const, icon: User, label: lang === "id" ? "Pribadi" : "Personal" },
-    { id: "career" as const, icon: Briefcase, label: lang === "id" ? "Karir" : "Career" },
-    { id: "finance" as const, icon: Wallet, label: lang === "id" ? "Keuangan" : "Finance" },
+    { id: "personal" as const, icon: User, label: tDash("profile.personal") },
+    { id: "career" as const, icon: Briefcase, label: tDash("profile.career") },
+    { id: "finance" as const, icon: Wallet, label: tDash("profile.finance") },
   ];
 
   const themes = [
-    { id: "dark" as const, label: lang === "id" ? "🌑 Gelap" : "🌑 Dark" },
-    { id: "theme-light" as const, label: lang === "id" ? "☀️ Terang" : "☀️ Light" },
+    { id: "dark" as const, label: "🌑 " + (lang === "id" ? "Gelap" : "Dark") },
+    { id: "theme-light" as const, label: "☀️ " + (lang === "id" ? "Terang" : "Light") },
     { id: "theme-ocean" as const, label: "🌊 Ocean Blue" },
     { id: "theme-forest" as const, label: "🌿 Forest Green" },
     { id: "theme-sunset" as const, label: "🌅 Sunset Orange" },
@@ -292,7 +294,7 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
             <div className="w-10 h-1 bg-border rounded-full mx-auto mb-2" />
             <div>
               <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">
-                {lang === "id" ? "Tema Tampilan" : "Display Theme"}
+                {tDash("profile.displayTheme")}
               </p>
               <div className="space-y-1.5">
                 {themes.map(({ id, label }) => (
@@ -306,7 +308,7 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
             </div>
             <div>
               <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">
-                {lang === "id" ? "Bahasa" : "Language"}
+                {tDash("profile.language")}
               </p>
               <div className="grid grid-cols-2 gap-2">
                 {([["id", "🇮🇩 Indonesia"], ["en", "🇬🇧 English"]] as const).map(([id, label]) => (
@@ -321,7 +323,7 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
               <button onClick={handleLogout} disabled={isPending}
                 className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl border border-rose-500/30 text-rose-500 font-semibold hover:bg-rose-500/10 transition-colors">
                 <LogOut className="w-4 h-4" />
-                {lang === "id" ? "Keluar dari Akun" : "Sign Out"}
+                {tDash("profile.signOut")}
               </button>
             </div>
           </div>
@@ -329,7 +331,7 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
       )}
 
       <div className="sticky top-0 z-10 bg-card/95 backdrop-blur border-b border-border/20 px-4 py-3 flex items-center justify-between">
-        <h1 className="text-base font-black text-foreground">{lang === "id" ? "Profil" : "Profile"}</h1>
+        <h1 className="text-base font-black text-foreground">{tDash("profile.profile")}</h1>
         <button onClick={() => setShowSheet(true)}
           className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted/50 transition-colors">
           <Menu className="w-5 h-5 text-foreground" />
@@ -344,7 +346,7 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-lg font-black text-foreground truncate">{fullName || "—"}</p>
-          <p className="text-xs text-muted-foreground truncate">{careerState || (lang === "id" ? "Status belum diisi" : "Status not set")}</p>
+          <p className="text-xs text-muted-foreground truncate">{careerState || tDash("profile.statusNotSet")}</p>
           <div className="flex flex-wrap gap-1.5 mt-2">
             <span className="text-[10px] bg-primary/15 text-primary px-2 py-0.5 rounded-full font-bold">Lv.{profile.level}</span>
             <span className="text-[10px] bg-amber-500/15 text-amber-500 px-2 py-0.5 rounded-full font-bold">{profile.xp} XP</span>
@@ -367,7 +369,7 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
             </div>
             <div className="text-left">
               <p className="text-xs font-black text-foreground">
-                {lang === "id" ? "Pemahaman AI" : "AI Understanding"}
+                {tDash("home.aiUnderstanding")}
               </p>
               <p className="text-[9px] text-muted-foreground leading-none">
                 {getUnderstandingLabel(understandingScore, lang)}
@@ -396,7 +398,7 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
             {aiInsightList.length > 0 ? (
               <div className="space-y-1.5">
                 <p className="text-[9px] font-bold text-primary uppercase tracking-wider">
-                  {lang === "id" ? "Insight AI" : "AI Insights"}
+                  {tDash("profile.aiInsights")}
                 </p>
                 {aiInsightList.map((insight, i) => (
                   <p key={i} className="text-[10px] text-muted-foreground leading-relaxed flex items-start gap-1.5">
@@ -407,15 +409,13 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
               </div>
             ) : (
               <p className="text-[10px] text-muted-foreground italic">
-                {lang === "id" ? "Isi profil lebih lengkap agar AI dapat menganalisis kondisi Anda." : "Fill in your profile details to unlock AI insights."}
+                {tDash("profile.fillProfileForInsights")}
               </p>
             )}
             <div className="bg-muted/15 border border-border/20 rounded-xl p-2.5 flex items-start gap-1.5">
               <span className="text-xs shrink-0">💡</span>
               <p className="text-[9px] text-muted-foreground leading-normal">
-                {lang === "id" 
-                  ? "AI mempelajari pola burnout dan gaya komunikasi Anda secara otomatis dari chat." 
-                  : "AI learns your burnout patterns and communication style automatically from chat."}
+                {tDash("profile.aiLearnsFromChat")}
               </p>
             </div>
           </div>
@@ -433,27 +433,27 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
                 <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                   <User className="w-4 h-4" />
                 </div>
-                <h3 className="text-sm font-black text-foreground">{lang === "id" ? "Identitas & Demografi Dasar" : "Identity & Demographics"}</h3>
+                <h3 className="text-sm font-black text-foreground">{tDash("profile.identityDemographics")}</h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground block mb-1.5">{lang === "id" ? "Nama Lengkap" : "Full Name"}</label>
+                  <label className="text-xs font-bold text-muted-foreground block mb-1.5">{tDash("profile.fullName")}</label>
                   <input value={fullName} onChange={e => setFullName(e.target.value)} className={inputCls} />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground block mb-1.5">{lang === "id" ? "Nama Panggilan" : "Display Name"}</label>
+                  <label className="text-xs font-bold text-muted-foreground block mb-1.5">{tDash("profile.displayName")}</label>
                   <input value={displayName} onChange={e => setDisplayName(e.target.value)} maxLength={50} placeholder="Maks 50 karakter" className={inputCls} />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground block mb-1.5">{lang === "id" ? "Tanggal Lahir" : "Birth Date"}</label>
+                  <label className="text-xs font-bold text-muted-foreground block mb-1.5">{tDash("profile.birthDate")}</label>
                   <input type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)} className={inputCls} />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground block mb-1.5">{lang === "id" ? "Jenis Kelamin" : "Gender"}</label>
+                  <label className="text-xs font-bold text-muted-foreground block mb-1.5">{tDash("profile.gender")}</label>
                   <select value={gender} onChange={e => setGender(e.target.value as any)} className={inputCls}>
                     <option value="Laki-laki">Laki-laki</option>
                     <option value="Perempuan">Perempuan</option>
@@ -463,7 +463,7 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
               </div>
 
               <div className="relative">
-                <label className="text-xs font-bold text-muted-foreground block mb-1.5">{lang === "id" ? "Domisili (Kota & Negara)" : "Domicile (City & Country)"}</label>
+                <label className="text-xs font-bold text-muted-foreground block mb-1.5">{tDash("profile.domicile")}</label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <MapPin className="h-4 w-4 text-muted-foreground/60" />
@@ -471,7 +471,7 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
                   <input
                     value={domicile}
                     onChange={e => setDomicile(e.target.value)}
-                    placeholder={lang === "id" ? "Contoh: New York, United States " : "E.g.New York, United States"}
+                    placeholder={tDash("profile.domicilePlaceholder")}
                     className={`${inputCls} pl-9 pr-10`}
                   />
                   <button
@@ -479,7 +479,7 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
                     onClick={handleDetectGeolocation}
                     disabled={detectingGeo}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
-                    title={lang === "id" ? "Deteksi Lokasi Otomatis" : "Auto-detect Location"}
+                    title={tDash("profile.autoDetectLocation")}
                   >
                     {detectingGeo ? (
                       <Loader2 className="h-4 w-4 animate-spin text-primary" />
@@ -497,11 +497,11 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
                 <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                   <Shield className="w-4 h-4" />
                 </div>
-                <h3 className="text-sm font-black text-foreground">{lang === "id" ? "Status Tempat Tinggal" : "Living Situation"}</h3>
+                <h3 className="text-sm font-black text-foreground">{tDash("profile.livingSituation")}</h3>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-muted-foreground block mb-1.5">{lang === "id" ? "Status Hunian Saat Ini" : "Current Living Situation"}</label>
+                <label className="text-xs font-bold text-muted-foreground block mb-1.5">{tDash("profile.currentLiving")}</label>
                 <select value={livingSituation} onChange={e => setLivingSituation(e.target.value as any)} className={inputCls}>
                   <option value="Tinggal Bersama Orang Tua/Keluarga">Tinggal Bersama Orang Tua/Keluarga</option>
                   <option value="Sewa/Ngekost Bulanan">Sewa/Ngekost Bulanan</option>
@@ -510,16 +510,16 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
                   <option value="Milik Sendiri (Lunas)">Milik Sendiri (Lunas)</option>
                 </select>
                 <p className="text-[10px] text-muted-foreground mt-1.5 mb-3">
-                  {lang === "id" ? "💡 Info ini digunakan oleh AI untuk menyalakan mode darurat jika kas Anda tidak aman." : "💡 This information is used by AI to adjust crisis mode protocols."}
+                  {tDash("profile.livingInfo")}
                 </p>
               </div>
 
               <div className="pt-3 border-t border-border/10">
                 <div className="flex items-center justify-between">
                   <div className="pr-4">
-                    <p className="text-xs font-bold text-foreground">{lang === "id" ? "Sewa Secara Sadar (Rent-by-Choice)" : "Rent-by-Choice"}</p>
+                    <p className="text-xs font-bold text-foreground">{tDash("profile.rentByChoice")}</p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">
-                      {lang === "id" ? "Aktifkan jika Anda memilih untuk menyewa hunian secara sadar untuk jangka panjang." : "Enable if you choose to rent long-term."}
+                      {tDash("profile.rentByChoiceDesc")}
                     </p>
                   </div>
                   <button type="button" onClick={() => setRentByChoice(!rentByChoice)}
@@ -536,25 +536,25 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
                 <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
                   <Heart className="w-4 h-4" />
                 </div>
-                <h3 className="text-sm font-black text-foreground">{lang === "id" ? "Beban Tanggungan (Reality Check)" : "Dependents & Sandwich Gen"}</h3>
+                <h3 className="text-sm font-black text-foreground">{tDash("profile.dependents")}</h3>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-muted-foreground block mb-1.5">{lang === "id" ? "Status Pernikahan" : "Marital Status"}</label>
+                <label className="text-xs font-bold text-muted-foreground block mb-1.5">{tDash("profile.maritalStatus")}</label>
                 <select value={maritalStatus} onChange={e => setMaritalStatus(e.target.value as any)} className={inputCls}>
-                  <option value="single">{lang === "id" ? "Single (Belum Menikah)" : "Single"}</option>
-                  <option value="pacaran">{lang === "id" ? "Pacaran / Menjalin Hubungan" : "In a Relationship / Dating"}</option>
-                  <option value="married">{lang === "id" ? "Menikah" : "Married"}</option>
-                  <option value="previously_married">{lang === "id" ? "Pernah Menikah (Duda/Janda)" : "Previously Married"}</option>
+                  <option value="single">{tDash("profile.single")}</option>
+                  <option value="pacaran">{tDash("profile.dating")}</option>
+                  <option value="married">{tDash("profile.married")}</option>
+                  <option value="previously_married">{tDash("profile.previouslyMarried")}</option>
                 </select>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center justify-between p-3 border border-border/20 rounded-xl h-11 self-end bg-background/50">
                   <div className="pr-2">
-                    <p className="text-xs font-bold text-foreground">{lang === "id" ? "Generasi Sandwich" : "Sandwich Gen"}</p>
+                    <p className="text-xs font-bold text-foreground">{tDash("profile.sandwichGen")}</p>
                     <p className="text-[9px] text-muted-foreground leading-none mt-0.5">
-                      {lang === "id" ? "Menanggung Ortu/Keluarga" : "Supporting family"}
+                      {tDash("profile.supportingFamily")}
                     </p>
                   </div>
                   <button type="button" onClick={() => setIsSandwichGen(!isSandwichGen)}
@@ -563,7 +563,7 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
                   </button>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground block mb-1.5">{lang === "id" ? "Jumlah Tanggungan (Anak/Keluarga)" : "Number of Dependents"}</label>
+                  <label className="text-xs font-bold text-muted-foreground block mb-1.5">{tDash("profile.dependentsCount")}</label>
                   <div className="flex items-center">
                     <button type="button" onClick={() => setDependentsCount(p => String(Math.max(0, parseInt(p || "0") - 1)))} className="h-11 w-11 flex items-center justify-center border border-border/40 rounded-l-xl text-foreground font-black text-lg bg-muted/30 active:bg-muted">-</button>
                     <input type="number" value={dependentsCount} onChange={e => setDependentsCount(e.target.value)} className="w-full h-11 text-center border-y border-border/40 bg-background text-sm focus:outline-none focus:border-primary transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" />
@@ -579,14 +579,14 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
                 <div className="w-7 h-7 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500">
                   <Accessibility className="w-4 h-4" />
                 </div>
-                <h3 className="text-sm font-black text-foreground">{lang === "id" ? "Batasan Fisik & Aksesibilitas" : "Physical Limitations"}</h3>
+                <h3 className="text-sm font-black text-foreground">{tDash("profile.physicalLimitations")}</h3>
               </div>
 
               <div className="flex items-center justify-between">
                 <div className="pr-4">
-                  <p className="text-xs font-bold text-foreground">{lang === "id" ? "Memiliki Batasan Fisik / Kebutuhan Khusus?" : "Have Physical Limitations?"}</p>
+                  <p className="text-xs font-bold text-foreground">{tDash("profile.haveLimitations")}</p>
                   <p className="text-[10px] text-muted-foreground mt-0.5">
-                    {lang === "id" ? "Mencegah AI merekomendasikan tugas lapangan fisik yang berat." : "Prevents the AI from recommending physically demanding tasks."}
+                    {tDash("profile.limitationsDesc")}
                   </p>
                 </div>
                 <button type="button" onClick={() => setHasPhysicalLimitation(!hasPhysicalLimitation)}
@@ -597,8 +597,8 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
 
               {hasPhysicalLimitation && (
                 <div className="animate-in slide-in-from-top-2 duration-200">
-                  <label className="text-xs font-bold text-muted-foreground block mb-1.5">{lang === "id" ? "Detail Batasan Fisik" : "Limitation Details"}</label>
-                  <input value={physicalLimitationDetails} onChange={e => setPhysicalLimitationDetails(e.target.value)} placeholder={lang === "id" ? "Misal: Kursi roda, asma berat, cedera lutut..." : "E.g. Wheelchair, asthma, knee injury..."} className={inputCls} />
+                  <label className="text-xs font-bold text-muted-foreground block mb-1.5">{tDash("profile.limitationDetails")}</label>
+                  <input value={physicalLimitationDetails} onChange={e => setPhysicalLimitationDetails(e.target.value)} placeholder={tDash("profile.limitationPlaceholder")} className={inputCls} />
                 </div>
               )}
             </div>
@@ -609,11 +609,11 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
                 <div className="w-7 h-7 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-500">
                   <Laptop className="w-4 h-4" />
                 </div>
-                <h3 className="text-sm font-black text-foreground">{lang === "id" ? "Aset Produktivitas & Mobilitas" : "Devices & Mobility Assets"}</h3>
+                <h3 className="text-sm font-black text-foreground">{tDash("profile.devicesMobility")}</h3>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-muted-foreground block mb-2">{lang === "id" ? "Perangkat Kerja Utama" : "Work Devices"}</label>
+                <label className="text-xs font-bold text-muted-foreground block mb-2">{tDash("profile.workDevices")}</label>
                 <div className="flex flex-wrap gap-2">
                   {(() => {
                     const defaultDevices = ["Smartphone Standar", "Smartphone Flagship", "Laptop/PC Standar", "Laptop/PC Performa Tinggi", "Kamera"];
@@ -634,7 +634,7 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
                   <input
                     value={customDeviceInput}
                     onChange={e => setCustomDeviceInput(e.target.value)}
-                    placeholder={lang === "id" ? "Tambah perangkat kustom..." : "Add custom device..."}
+                    placeholder={tDash("profile.addCustomDevice")}
                     onKeyDown={e => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -664,7 +664,7 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
               </div>
 
               <div>
-                <label className="text-xs font-bold text-muted-foreground block mb-2">{lang === "id" ? "Aset Mobilitas" : "Mobility Assets"}</label>
+                <label className="text-xs font-bold text-muted-foreground block mb-2">{tDash("profile.mobilityAssets")}</label>
                 <div className="flex flex-wrap gap-2">
                   {(() => {
                     const defaultMobility = ["Motor Pribadi", "Mobil Pribadi", "Transportasi Publik / Online"];
@@ -685,7 +685,7 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
                   <input
                     value={customMobilityInput}
                     onChange={e => setCustomMobilityInput(e.target.value)}
-                    placeholder={lang === "id" ? "Tambah aset kustom..." : "Add custom asset..."}
+                    placeholder={tDash("profile.addCustomAsset")}
                     onKeyDown={e => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -721,23 +721,23 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
                 <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
                   <Milestone className="w-4 h-4" />
                 </div>
-                <h3 className="text-sm font-black text-foreground">{lang === "id" ? "North Star (Tujuan Puncak)" : "North Star Goals"}</h3>
+                <h3 className="text-sm font-black text-foreground">{tDash("profile.northStarGoals")}</h3>
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">{lang === "id" ? "Tujuan Hidup Terbesar (Life Goal)" : "Life Goal"}</label>
+                  <label className="text-xs font-bold text-muted-foreground">{tDash("profile.lifeGoal")}</label>
                   <span className="text-[10px] text-muted-foreground">{lifeGoal.length}/300</span>
                 </div>
-                <textarea value={lifeGoal} onChange={e => setLifeGoal(e.target.value.slice(0, 300))} rows={4} maxLength={300} placeholder={lang === "id" ? "Contoh: Ingin membangun sistem bisnis yang auto-pilot di usia 25 tahun..." : "E.g. Ingin membangun sistem bisnis..."} className={textareaCls} />
+                <textarea value={lifeGoal} onChange={e => setLifeGoal(e.target.value.slice(0, 300))} rows={4} maxLength={300} placeholder={tDash("profile.lifeGoalPlaceholder")} className={textareaCls} />
                 <p className="text-[10px] text-muted-foreground mt-1.5">
-                  {lang === "id" ? "💡 Ini akan digunakan oleh AI sebagai senjata motivasi utama saat memandu atau menegur Anda di sesi mentoring." : "💡 This is your compass. The AI Mentor will refer to it during guidance sessions."}
+                  {tDash("profile.lifeGoalInfo")}
                 </p>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-muted-foreground block mb-1.5">{lang === "id" ? "Bio Ringkas" : "Short Bio"}</label>
-                <textarea value={background} onChange={e => setBackground(e.target.value)} rows={3} placeholder={lang === "id" ? "Ceritakan latar belakang Anda secara singkat..." : "A brief background..."} className={textareaCls} />
+                <label className="text-xs font-bold text-muted-foreground block mb-1.5">{tDash("profile.shortBio")}</label>
+                <textarea value={background} onChange={e => setBackground(e.target.value)} rows={3} placeholder={tDash("profile.bioPlaceholder")} className={textareaCls} />
               </div>
             </div>
           </div>
@@ -807,7 +807,7 @@ export default function ProfileTab({ profile, finance, usersCore, aiInsights, ex
         <button onClick={handleSave} disabled={isPending}
           className="w-full h-12 rounded-2xl font-bold text-sm bg-primary text-primary-foreground flex items-center justify-center gap-2 disabled:opacity-60 shadow-lg shadow-primary/20 active:scale-95 transition-all">
           <Save className="w-4 h-4" />
-          {isPending ? (lang === "id" ? "Menyimpan..." : "Saving...") : (lang === "id" ? "Simpan & Perbarui AI" : "Save & Update AI")}
+          {isPending ? tDash("profile.saving") : tDash("profile.saveUpdateAI")}
         </button>
       </div>
     </>

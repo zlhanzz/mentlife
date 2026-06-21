@@ -248,3 +248,34 @@ CREATE INDEX IF NOT EXISTS idx_chat_messages_user_id ON chat_messages(user_id);
 CREATE INDEX IF NOT EXISTS idx_ai_memory_user_id ON ai_memory(user_id);
 CREATE INDEX IF NOT EXISTS idx_decision_projections_user_id ON decision_projections(user_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON transactions(user_id);
+
+-- ── Onboarding Drafts Table ──
+-- Stores partial onboarding progress so users can resume after closing the browser.
+CREATE TABLE IF NOT EXISTS onboarding_drafts (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  current_step INTEGER NOT NULL DEFAULT 0,
+  draft_data JSONB NOT NULL DEFAULT '{}',
+  ai_insights JSONB NOT NULL DEFAULT '[]',
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
+);
+
+-- RLS: Users can only read/write their own draft
+ALTER TABLE onboarding_drafts ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own onboarding draft"
+  ON onboarding_drafts FOR SELECT
+  USING (auth.uid() = id);
+
+CREATE POLICY "Users can insert own onboarding draft"
+  ON onboarding_drafts FOR INSERT
+  WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "Users can update own onboarding draft"
+  ON onboarding_drafts FOR UPDATE
+  USING (auth.uid() = id);
+
+CREATE POLICY "Users can delete own onboarding draft"
+  ON onboarding_drafts FOR DELETE
+  USING (auth.uid() = id);
+
+CREATE INDEX IF NOT EXISTS idx_onboarding_drafts_user_id ON onboarding_drafts(id);

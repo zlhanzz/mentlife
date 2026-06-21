@@ -17,6 +17,8 @@ export default function SupabaseConnectionStatus() {
 
   if (!validation) return null
 
+  if (validation.isValid) return null
+
   const isError = !validation.isValid
   const hasPlaceholderKey = validation.supabaseAnonKey?.includes('YOUR_') || 
                             validation.supabaseAnonKey?.includes('EXAMPLE') ||

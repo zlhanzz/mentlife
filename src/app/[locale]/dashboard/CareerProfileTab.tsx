@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useApp } from "@/context/app-context";
+import { useTranslations } from "next-intl";
 import { 
   GraduationCap, Clock, Zap, Heart, Compass, Target, Plus, X 
 } from "lucide-react";
@@ -98,6 +99,7 @@ export function CategorySection({
   colorClass
 }: CategorySectionProps) {
   const { lang } = useApp();
+  const tDash = useTranslations("dashboard");
   const [customInput, setCustomInput] = useState("");
   const colors = colorMaps[colorClass];
 
@@ -169,7 +171,7 @@ export function CategorySection({
       {/* Story Textarea */}
       <div className="space-y-1.5 pt-1">
         <div className="flex items-center justify-between text-xs font-bold text-muted-foreground">
-          <span>{lang === "id" ? "Detail & Cerita Tambahan" : "Details & Context"}</span>
+          <span>{tDash("profile.detailsContext")}</span>
           <span className="text-[10px] opacity-75">{storyValue.length}/500</span>
         </div>
         <textarea
@@ -243,6 +245,7 @@ export default function CareerProfileTab({
   northStarStory,
   setNorthStarStory
 }: CareerProfileTabProps) {
+  const tDash = useTranslations("dashboard");
   const toggle = (list: string[], setList: React.Dispatch<React.SetStateAction<string[]>>, item: string) => {
     setList(prev => prev.includes(item) ? prev.filter(x => x !== item) : [...prev, item]);
   };
@@ -258,13 +261,13 @@ export default function CareerProfileTab({
     <div className="space-y-6">
       {/* 1. Pendidikan & Pelatihan */}
       <CategorySection
-        title="Pendidikan & Pelatihan"
+        title={tDash("profile.education")}
         icon={GraduationCap}
         defaultOptions={defaultEducation}
         selected={educationOptions}
         onToggle={item => toggle(educationOptions, setEducationOptions, item)}
         customPlaceholder="Add custom education..."
-        storyPlaceholder="Ceritakan lebih detail tentang fokus pendidikan atau pelatihan yang pernah kamu ambil."
+        storyPlaceholder={tDash("profile.educationPlaceholder")}
         storyValue={educationStory}
         onStoryChange={setEducationStory}
         colorClass="indigo"
@@ -272,13 +275,13 @@ export default function CareerProfileTab({
 
       {/* 2. Status & Rutinitas Saat Ini */}
       <CategorySection
-        title="Status & Rutinitas Saat Ini"
+        title={tDash("profile.currentStatus")}
         icon={Clock}
         defaultOptions={defaultStatus}
         selected={statusOptions}
         onToggle={item => toggle(statusOptions, setStatusOptions, item)}
         customPlaceholder="Add custom status..."
-        storyPlaceholder="Bagaimana realitas pekerjaan atau rutinitasmu saat ini?"
+        storyPlaceholder={tDash("profile.statusPlaceholder")}
         storyValue={statusStory}
         onStoryChange={setStatusStory}
         colorClass="sky"
@@ -286,13 +289,13 @@ export default function CareerProfileTab({
 
       {/* 3. Keahlian (Skills) */}
       <CategorySection
-        title="Keahlian (Skills)"
+        title={tDash("profile.skills")}
         icon={Zap}
         defaultOptions={defaultSkills}
         selected={skills}
         onToggle={item => toggle(skills, setSkills, item)}
         customPlaceholder="Add custom skill..."
-        storyPlaceholder="Dari semua keahlian di atas, mana yang paling ingin kamu jadikan senjata utama untuk menghasilkan uang?"
+        storyPlaceholder={tDash("profile.skillsPlaceholder")}
         storyValue={skillsStory}
         onStoryChange={setSkillsStory}
         colorClass="primary"
@@ -300,13 +303,13 @@ export default function CareerProfileTab({
 
       {/* 4. Kegemaran (Hobbies) */}
       <CategorySection
-        title="Kegemaran (Hobbies)"
+        title={tDash("profile.hobbies")}
         icon={Heart}
         defaultOptions={defaultHobbies}
         selected={hobbies}
         onToggle={item => toggle(hobbies, setHobbies, item)}
         customPlaceholder="Add custom hobby..."
-        storyPlaceholder="Hobi atau aktivitas apa yang biasanya sering membuatmu lupa waktu?"
+        storyPlaceholder={tDash("profile.hobbiesPlaceholder")}
         storyValue={hobbiesStory}
         onStoryChange={setHobbiesStory}
         colorClass="emerald"
@@ -314,13 +317,13 @@ export default function CareerProfileTab({
 
       {/* 5. Target & Prioritas Karir */}
       <CategorySection
-        title="Target & Prioritas Karir"
+        title={tDash("profile.careerGoals")}
         icon={Target}
         defaultOptions={defaultCareerGoals}
         selected={northStarOptions}
         onToggle={item => toggle(northStarOptions, setNorthStarOptions, item)}
         customPlaceholder="Add custom career goal..."
-        storyPlaceholder="Gambarkan target karirmu secara spesifik dan prioritas utama yang ingin kamu capai dalam 1-3 tahun ke depan."
+        storyPlaceholder={tDash("profile.careerGoalsPlaceholder")}
         storyValue={northStarStory}
         onStoryChange={setNorthStarStory}
         colorClass="amber"

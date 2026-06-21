@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { addTaskAction, toggleTaskAction, deleteTaskAction } from "@/features/dashboard/actions";
 import { useApp } from "@/context/app-context";
 import { AIRecommendations } from "@/services/ai";
@@ -39,6 +40,7 @@ interface CareerTabProps {
 
 export default function CareerTab({ profile, aiRecs, initialTasks, usersCore, ladderLevel }: CareerTabProps) {
   const { lang } = useApp();
+  const tDash = useTranslations("dashboard");
   const [isPending, startTransition] = useTransition();
   const [tasks, setTasks] = useState(initialTasks);
   const [taskTitle, setTaskTitle] = useState("");
@@ -171,7 +173,7 @@ export default function CareerTab({ profile, aiRecs, initialTasks, usersCore, la
               </div>
             </div>
             <div className="text-right">
-              <p className="text-[9px] text-muted-foreground">Level Karir</p>
+              <p className="text-[9px] text-muted-foreground">{tDash("career.level")}</p>
               <p className={`text-sm font-black ${currentConfig.color}`}>Lv.{profile.level}</p>
             </div>
           </div>
@@ -183,11 +185,6 @@ export default function CareerTab({ profile, aiRecs, initialTasks, usersCore, la
           )}
 
           {/* Health warning */}
-          {health_baseline === "burnout_alert" && (
-            <div className="mt-2 bg-rose-500/10 rounded-lg px-3 py-2">
-              <p className="text-[10px] text-rose-500 font-bold">⚠️ Burnout Alert — Mode hemat energi. Prioritaskan istirahat dulu.</p>
-            </div>
-          )}
           {health_baseline === "physical_limitation" && (
             <div className="mt-2 bg-amber-500/10 rounded-lg px-3 py-2">
               <p className="text-[10px] text-amber-500 font-bold">ℹ️ Keterbatasan Fisik — Hanya pekerjaan digital/intelektual yang ditampilkan.</p>
@@ -220,7 +217,7 @@ export default function CareerTab({ profile, aiRecs, initialTasks, usersCore, la
       {/* ── SUB-MODULE ACTIONS (berdasarkan formal_status) ── */}
       <div className="mx-4">
         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
-          Aksi Prioritas — {formal_status}
+          {tDash("career.priorityActions")} — {formal_status}
         </p>
         <div className="space-y-2">
           {currentActions.map((action, i) => (
@@ -250,7 +247,7 @@ export default function CareerTab({ profile, aiRecs, initialTasks, usersCore, la
       {hasIkigai ? (
         <div className="mx-4">
           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
-            Profil Ikigai-mu
+            {tDash("career.ikigaiProfile")}
           </p>
           <div className="bg-card border border-border/20 rounded-2xl p-4 space-y-2.5">
             {profile.hobbies.length > 0 && (
@@ -293,7 +290,7 @@ export default function CareerTab({ profile, aiRecs, initialTasks, usersCore, la
           <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 flex items-start gap-3">
             <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs font-bold text-foreground mb-0.5">Lengkapi Profil Ikigai-mu</p>
+              <p className="text-xs font-bold text-foreground mb-0.5">{tDash("career.completeIkigai")}</p>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
                 Isi hobi, skill, dan minat di tab Profil. AI akan menemukan peluang karir dan side hustle terbaik untukmu.
               </p>
@@ -306,7 +303,7 @@ export default function CareerTab({ profile, aiRecs, initialTasks, usersCore, la
       {aiRecs.sideHustles?.length > 0 && (
         <div className="mx-4">
           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
-            Peluang Karir & Side Hustle — AI Curated
+            {tDash("career.sideHustleOpportunities")}
           </p>
           <div className="space-y-2">
             {aiRecs.sideHustles.map((sh, i) => {
@@ -345,25 +342,25 @@ export default function CareerTab({ profile, aiRecs, initialTasks, usersCore, la
       <div className="mx-4">
         <div className="flex items-center justify-between mb-2">
           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-            Daftar Tugas
+            {tDash("tasks.title")}
           </p>
           <button onClick={() => setShowForm(!showForm)}
             className="flex items-center gap-1 text-[10px] font-bold text-primary bg-primary/10 px-2.5 py-1.5 rounded-lg active:scale-95 transition-all">
             <Plus className="w-3 h-3" />
-            Tambah
+            {tDash("tasks.add")}
           </button>
         </div>
 
         {showForm && (
           <form onSubmit={handleAdd} className="bg-card border border-border/20 rounded-2xl p-4 space-y-3 mb-3">
             <div>
-              <label className="text-[10px] font-bold text-muted-foreground block mb-1">Judul Tugas</label>
+              <label className="text-[10px] font-bold text-muted-foreground block mb-1">{tDash("career.taskTitle")}</label>
               <input value={taskTitle} onChange={e => setTaskTitle(e.target.value)} required autoFocus
                 placeholder="Contoh: Buat CV baru, Pelajari React..."
                 className="w-full h-10 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:border-primary" />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-muted-foreground block mb-1">Kategori</label>
+              <label className="text-[10px] font-bold text-muted-foreground block mb-1">{tDash("career.category")}</label>
               <div className="flex flex-wrap gap-1.5">
                 {["Karir", "Skill", "Side Hustle", "Bisnis", "Personal"].map(cat => (
                   <button key={cat} type="button" onClick={() => setTaskCategory(cat)}
@@ -376,7 +373,7 @@ export default function CareerTab({ profile, aiRecs, initialTasks, usersCore, la
             <div className="flex gap-2">
               <button type="submit" disabled={isPending || !taskTitle.trim()}
                 className="flex-1 h-9 rounded-xl font-bold text-xs bg-primary text-primary-foreground disabled:opacity-40">
-                {isPending ? "Menyimpan..." : "Simpan"}
+                {isPending ? tDash("career.saving") : tDash("career.save")}
               </button>
               <button type="button" onClick={() => setShowForm(false)}
                 className="h-9 px-3 rounded-xl text-xs text-muted-foreground border border-border/40">
@@ -402,8 +399,8 @@ export default function CareerTab({ profile, aiRecs, initialTasks, usersCore, la
           ? (
             <div className="text-center py-8 bg-card border border-border/20 rounded-2xl">
               <CheckSquare className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-muted-foreground">Belum ada tugas</p>
-              <p className="text-[11px] text-muted-foreground mt-1">Klik tombol aksi di atas untuk langsung tambah</p>
+              <p className="text-sm font-semibold text-muted-foreground">{tDash("tasks.emptyTitle")}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{tDash("career.emptyTaskDesc")}</p>
             </div>
           )
           : (

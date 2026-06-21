@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { BrainCircuit, Lock, Mail, Loader2 } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/navigation";
+import { useTranslations } from "next-intl";
 
 const initialState: AuthState = {
   success: false,
@@ -16,6 +17,8 @@ const initialState: AuthState = {
 
 export default function LoginForm() {
   const [state, formAction, isPending] = useActionState(loginAction, initialState);
+  const t = useTranslations("auth.login");
+  const tCommon = useTranslations("common");
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -33,9 +36,9 @@ export default function LoginForm() {
             <BrainCircuit className="w-8 h-8 text-primary" />
           </div>
           <div className="text-center space-y-1">
-            <CardTitle className="text-2xl font-bold tracking-tight">Welcome Back</CardTitle>
+            <CardTitle className="text-2xl font-bold tracking-tight">{t("title")}</CardTitle>
             <CardDescription className="text-muted-foreground text-sm">
-              Sign in to continue your mentorship journey
+              {tCommon("signInDesc")}
             </CardDescription>
           </div>
         </CardHeader>
@@ -69,13 +72,13 @@ export default function LoginForm() {
                   className="text-[#EA4335]"
                 />
               </svg>
-              Continue with Google
+              {t("google")}
             </Button>
           </form>
 
           <div className="relative flex items-center justify-center mb-4">
             <div className="flex-1 border-t border-border/30"></div>
-            <span className="px-3 text-xs text-muted-foreground uppercase font-semibold">or</span>
+            <span className="px-3 text-xs text-muted-foreground uppercase font-semibold">{tCommon("or")}</span>
             <div className="flex-1 border-t border-border/30"></div>
           </div>
 
@@ -88,7 +91,7 @@ export default function LoginForm() {
 
             <div className="space-y-2">
               <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Email Address
+                {t("email")}
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/75" />
@@ -109,13 +112,13 @@ export default function LoginForm() {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Password
+                  {t("password")}
                 </Label>
                 <Link
                   href="/forgot-password"
                   className="text-xs font-semibold text-primary hover:underline"
                 >
-                  Forgot password?
+                  {t("forgotPassword")}
                 </Link>
               </div>
               <div className="relative">
@@ -142,19 +145,19 @@ export default function LoginForm() {
               {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Signing In...
+                  {tCommon("loading")}
                 </>
               ) : (
-                "Sign In"
+                t("submit")
               )}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="pb-8 justify-center">
           <p className="text-sm text-muted-foreground">
-            Don't have an account?{" "}
+            {t("noAccount")}{" "}
             <Link href="/register" className="font-semibold text-primary hover:underline">
-              Create an account
+              {t("signUp")}
             </Link>
           </p>
         </CardFooter>

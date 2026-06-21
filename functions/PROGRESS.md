@@ -1,5 +1,54 @@
 # Riwayat Progres Aplikasi Mentlife
 
+## [Selesai] Edge-Based Routing & Rate Limiting (Upstash) (30 Mei 2026)
+- **Status**: Selesai ✅
+- **TypeScript**: `tsc --noEmit` — EXIT 0 (Sukses)
+- **Detail**:
+  - **Edge Middleware**: Membuat `middleware.ts` Next.js di root `src/` yang bertindak sebagai Edge-based gatekeeper.
+  - **Rate Limiting (Upstash)**: Mengintegrasikan `@upstash/ratelimit` dan `@upstash/redis` untuk membatasi request per IP Address (10 request per 10 detik) pada rute API sensitif (`/api/inngest`, `/api/chat`, dan seluruh call POST Server Actions).
+  - **Graceful Bypass**: Menyediakan mekanisme fail-safe sehingga jika Redis offline atau belum dikonfigurasi di dev local, request akan diteruskan dengan aman tanpa memblokir pengguna.
+  - **Auth Routing Integration**: Mengarahkan lalu lintas yang lolos rate limit ke alur `proxy` Supabase auth session sebelumnya.
+
+## [Selesai] Queue & Background Job Processing (Inngest) (30 Mei 2026)
+- **Status**: Selesai ✅
+- **TypeScript**: `tsc --noEmit` — EXIT 0 (Sukses)
+- **Detail**:
+  - **Arsitektur Asinkronus (Inngest)**: Mengintegrasikan Inngest untuk memproses tugas-tugas berat di latar belakang (*background job*).
+  - **Pemisahan Invisible Memory**: Memindahkan operasi ekstraksi chat AI (`extractDataFromChat` via Gemini 3.5 Flash) dan penulisan database terkait dari alur Server Action utama (`sendChatMessageAction`) ke Inngest event handler (`chat/message.sent`).
+  - **Supabase Admin Client**: Membuat client Supabase khusus dengan bypass session token (`admin.ts`) agar background worker dapat melakukan query & update database secara aman dan handal di latar belakang.
+  - **Latensi Sangat Rendah**: Mengurangi waktu tunggu respons obrolan Mentor AI bagi pengguna secara signifikan karena ekstraksi metadata profile dijalankan secara paralel di latar belakang.
+
+## [Selesai] Integrasi Gemini Chatbot Riil & AI Friction Trigger (Survival Mode) (30 Mei 2026)
+- **Status**: Selesai ✅
+- **TypeScript**: `tsc --noEmit` — EXIT 0 (Sukses)
+- **Detail**:
+  - **Gemini Chatbot Riil**: Mengintegrasikan API Gemini (`gemini-2.5-flash`) secara penuh untuk menjawab pesan di tab Mentor AI secara dinamis dengan mengompilasi data keuangan, profil, and long-term memory (`ai_memory`) pengguna.
+  - **Dukungan Gaya Komunikasi**: Menyelaraskan output chatbot agar mematuhi pengaturan `ai_communication_style` (Empatis/Tegas/Logis) yang dipilih pengguna.
+  - **AI Friction Trigger (Survival Mode)**: Membangun dialog intersep kustom bertema merah (Tough-Love AI Alert) di modal pencatatan transaksi jika pengguna di Tangga 1 (Mode Survival) mencoba menginput pengeluaran Keinginan (Wants) senilai >= Rp100.000.
+  - **Delayed Gratification Action**: Menyediakan opsi "Batal Belanja" untuk melatih disiplin atau "Abaikan & Catat" untuk mem-bypass peringatan secara sadar.
+
+## [Selesai] Kategori Pengeluaran Multi-layer, Kategori Kustom Dinamis, Analisis Porsi & Filter Periode Finansial (30 Mei 2026)
+- **Status**: Selesai ✅
+- **TypeScript**: `tsc --noEmit` — EXIT 0 (Sukses)
+- **Detail**:
+  - **Kategori Bawaan Lebih Lengkap**: Menambahkan kategori pengeluaran seperti Motor & Kendaraan, Rokok, Cemilan, Tagihan Lainnya, dan Langganan Layanan langsung di `finance-categories.ts`.
+  - **Klasifikasi Pengeluaran Terstruktur**: Mendukung pemisahan kategori pengeluaran secara multi-layer antara Kebutuhan (Needs), Keinginan (Wants), dan Bisnis (Business) dengan label bahasa Indonesia yang ramah pengguna.
+  - **Pilihan Dropdown & Kategori Kustom**: Menyediakan dropdown list (`<select>`) di modal transaksi serta panel input kategori kustom baru agar pengguna bisa membuat dan menyeleksi kategori belanja khas mereka sendiri secara real-time.
+  - **Filter Periode Waktu Fleksibel**: Menyediakan selector periode waktu (Bulan Ini, Bulan Lalu, Tahun 2026, 2025, 2024) pada tab Analitik dan Riwayat untuk menganalisis arus kas di masa kini maupun laporan tahun-tahun sebelumnya yang telah selesai.
+  - **Analisis Porsi Terbanyak (Category Breakdown)**: Mengintegrasikan visualisasi horizontal progress bar terurut (descending) yang menampilkan persentase dan total nominal pengeluaran kategori terbesar di tab Analitik.
+
+## [Selesai] Evolusi Dasbor Keuangan (3 Tombol Aksi, Anggaran Bulanan & Dana Goal AI) (30 Mei 2026)
+- **Status**: Selesai ✅
+- **TypeScript**: `tsc --noEmit` — EXIT 0 (Sukses)
+- **Detail**:
+  - **Relokasi Tombol Aksi (FAB Overlap Fix)**: Menghapus tombol floating `+` di sudut kanan bawah yang menutupi menu "Profil" di tampilan seluler, menggantinya dengan 3 Tombol Aksi Mandiri (+ Pemasukan, - Pengeluaran, ⇄ Alokasi) secara horizontal tepat di bawah saldo "Sisa Kas" pada tab Ringkasan.
+  - **Fitur Anggaran Bulanan (Budgeting)**: Menambahkan seksi Anggaran Bulanan untuk alokasi dana per kategori (berulang & satu kali), lengkap dengan progress bar persentase utilitas dan modal tambah anggaran baru.
+  - **Fitur Dana Goal Masa Depan**: Menambahkan seksi Dana Goal Finansial (misal: Pernikahan, DP Rumah) yang dipantau secara langsung oleh AI asisten CFO melalui box rekomendasi evaluasi taktis.
+  - **Dinamisasi Goal Berdasarkan Profil**: Menyinkronkan daftar Dana Goal secara dinamis berdasarkan data pribadi pengguna di `usersCore` (seperti status pernikahan dan status kepemilikan tempat tinggal).
+  - **Integrasi RupiahInput Terstandar**: Mengganti kolom input nominal standar pada ketiga modal keuangan dengan `<RupiahInput />` dari `FinanceProfileTab.tsx` untuk pemisahan titik ribuan otomatis yang presisi.
+  - **Peningkatan Analitik**: Menambahkan detail analisis utilitas anggaran agregat serta "Rapor Audit CFO AI" di tab Analitik.
+  - **Dukungan Multibahasa (i18n)**: Menambahkan seluruh kunci penerjemahan UI baru di `app-context.tsx` untuk kelancaran lokalisasi Bahasa Indonesia & Inggris secara real-time.
+
 ## [Selesai] Audit & Optimasi Tata Letak Menu Keuangan (23 Mei 2026)
 - **Status**: Selesai ✅
 - **TypeScript**: `tsc --noEmit` — EXIT 0 (Sukses)

@@ -1,0 +1,110 @@
+{
+  "common": {
+    "appName": "Mentlife",
+    "loading": "読み込み中...",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "back": "戻る",
+    "next": "次へ",
+    "submit": "送信",
+    "skip": "スキップ",
+    "add": "+ 追加",
+    "error": "エラーが発生しました",
+    "success": "成功",
+    "or": "または",
+    "backToSignIn": "サインインに戻る",
+    "alreadyHaveAccount": "すでにアカウントをお持ちですか？",
+    "signIn": "サインイン",
+    "signUp": "アカウント作成",
+    "creatingAccount": "アカウント作成中...",
+    "checkEmail": "メールを確認してください",
+    "checkEmailDesc": "確認リンクをメールに送信しました。受信トレイまたはスパムフォルダをご確認ください。",
+    "createAccount": "アカウント作成",
+    "continueWithGoogle": "Googleで続ける",
+    "signUpDesc": "パーソナルAIメンターシップを始めるためにサインアップ",
+    "signInDesc": "旅を続けるためにサインイン",
+    "forgotPassword": "パスワードをお忘れですか？",
+    "noAccount": "アカウントをお持ちでないですか？",
+    "termsLegal": "続行することで、利用規約とプライバシーポリシーに同意したことになります。",
+    "syncing": "ダッシュボードに同期中...",
+    "openDashboard": "Mentlifeダッシュボードを開く",
+    "dashboardSyncDesc": "データが保存され、ダッシュボードがプロフィールに合わせて調整されます。",
+    "editAnswer": "この回答を編集",
+    "calonMentee": "見込みメンティー",
+    "done": "完了"
+  },
+  "landing": {
+    "heroSubtitle": "ファイナンスの習得とキャリア加速のためのAIパーソナルメンター。",
+    "features": {
+      "finance": { "title": "スマートファイナンス", "desc": "富を追跡・最適化" },
+      "career": { "title": "キャリア成長", "desc": "AI駆動の成功への道" }
+    },
+    "cta": { "button": "始める", "legal": "続行することで、利用規約とプライバシーポリシーに同意したことになります。" }
+  },
+  "auth": {
+    "login": { "title": "おかえりなさい", "email": "メールアドレス", "password": "パスワード", "submit": "サインイン", "google": "Googleで続ける", "forgotPassword": "パスワードをお忘れですか？", "noAccount": "アカウントをお持ちでないですか？", "signUp": "アカウント作成" },
+    "register": { "title": "アカウント作成", "desc": "パーソナルAIメンターシップを始めるためにサインアップ", "fullName": "氏名", "email": "メールアドレス", "password": "パスワード", "confirmPassword": "パスワード確認", "submit": "アカウント作成", "google": "Googleで続ける", "hasAccount": "すでにアカウントをお持ちですか？", "signIn": "サインイン" },
+    "forgotPassword": { "title": "パスワードを忘れた", "desc": "登録済みのメールアドレスを入力してください。パスワードリセットリンクをお送りします。", "email": "メールアドレス", "submit": "リセットリンクを送信", "sending": "送信中...", "successTitle": "リンクを送信しました！", "backToLogin": "ログインに戻る" },
+    "resetPassword": { "title": "新しいパスワードを作成", "desc": "アカウントの新しいパスワードを入力してください。", "newPassword": "新しいパスワード", "confirmPassword": "新しいパスワードの確認", "submit": "パスワードを保存", "saving": "保存中...", "successTitle": "パスワードが変更されました！", "goToLogin": "新しいパスワードでログイン", "rememberPassword": "パスワードを覚えていますか？", "signIn": "サインイン" }
+  },
+  "onboarding": {
+    "header": { "title": "AIオンボーディングメンター", "subtitle": "ご紹介＆プログラムカスタマイズ" },
+    "profileSheet": { "aiUnderstanding": "AI理解度", "needsCompletion": "要完了", "fairlyComplete": " fairly完了", "veryComplete": "非常に完了", "perfect": "完璧" },
+    "sectionDividers": { "finance": "ファイナンス", "career": "キャリア＆目標" },
+    "welcome": { "greeting": "こんにちは！Mentlifeへようこそ。最高のファイナンス＆キャリア戦略を構築するお手伝いをするAIパーソナルメンターです。", "firstQuestion": "始める前に、お名前（ニックネーム）、生年月日、お住まいの都市を教えていただけますか？", "resumeGreeting": "こんにちは！Mentlifeにお帰りなさい。以前オンボーディングを始めたようですね。続けましょう。" },
+    "steps": {
+      "identity": { "namePlaceholder": "ニックネーム...", "domicilePlaceholder": "都市、国（例：東京、日本）", "genderQuestion": "性別は何ですか？AIがキャリア推奨を調整するのに役立ちます。", "insuranceQuestion": "健康保険はありますか？緊急資金の計画に重要です。", "greetingSkills": "はじめまして、{name}！適切な戦略を構築するために、あなたのポテンシャルを理解する必要があります。どんなスキルをお持ちですか？" },
+      "skills": { "question": "はじめまして！適切な戦略を構築するために、あなたのポテンシャルを理解する必要があります。どんなスキルをお持ちですか？", "experienceQuestion": "素晴らしい！それらのスキルに関する経験やバックグラウンドについて教えてください。", "experienceFollowUp": "素晴らしい！それらのスキルに関する経験やバックグラウンドについて教えてください。", "storyQuestion": "追加のエピソードや最も発展させたい分野はありますか？（オプション、スキップ可）", "storyFollowUp": "追加のエピソードや最も発展させたい分野はありますか？", "addCustom": "他のスキルを追加...", "placeholder": "経験とバックグラウンドについて教えてください...", "storyPlaceholder": "追加のエピソード、例：最も発展させたい分野...", "storySkipped": "追加のエピソード：—（スキップ）" },
+      "hobbies": { "question": "素晴らしい！生きがいの交差点を見つけるために、どんな趣味が好きで、どんなトピックに興味がありますか？", "interestQuestion": "いいね！では、どんなトピックや分野に興味がありますか？", "interestFollowUp": "いいね！では、どんなトピックや分野に興味がありますか？", "storyQuestion": "趣味や興味についての追加のエピソードはありますか？（オプション、スキップ可）", "storyFollowUp": "趣味や興味についての追加のエピソードはありますか？", "addCustom": "他の趣味を追加...", "addCustomInterest": "他の興味を追加...", "hobbyLabel": "趣味：", "interestLabel": "興味：", "transition": "素晴らしい！生きがいの交差点を見つけるために、どんな趣味が好きで、どんなトピックに興味がありますか？", "storySkipped": "追加のエピソード：—（スキップ）", "financeTransition": "プロフィールデータが充実しています。財務状況の見積もりを始めましょう。" },
+      "finance": { "intro": "プロフィールデータが充実しています。財務状況の見積もりを始めましょう。", "incomeQuestion": "月額収入は？", "expenseQuestion": "月額支出は？", "savingsQuestion": "現在の貯蓄総額は？", "dependentsQuestion": "扶養している人はいますか？", "debtQuestion": "借金はありますか？", "debtBreakdown": "借金の詳細：", "debtHighInterest": "高金利借金", "debtProductive": "生産的借金", "debtZeroInterest": "無利息借金", "investmentQuestion": "投資はありますか？", "investmentExpQuestion": "試した投資商品は？", "riskQuestion": "リスクプロファイルは？", "riskLabels": { "konservatif": "保守的", "moderat": "中庸", "agresif": "積極的" }, "incomeLabel": "Estimated Monthly Income", "incomeHelper": "Estimated total monthly income.", "incomePlaceholder": "E.g.: 5,000,000", "expenseLabel": "Estimated Monthly Expenses", "expenseHelper": "Total fixed monthly expenses.", "expensePlaceholder": "E.g.: 3,000,000", "savingsLabel": "Savings / Liquid Funds", "savingsHelper": "Total cash accessible now.", "savingsPlaceholder": "E.g.: 2,000,000", "debtEstimateLabel": "Estimated Debt", "debtHelper": "If you have debts, fill each type.", "debtHighLabel": "High Interest", "debtHighPlaceholder": "Payday loans, Credit cards...", "debtProductiveLabel": "Productive", "debtProductivePlaceholder": "Mortgage, Business loan...", "debtZeroLabel": "Zero Interest", "debtZeroPlaceholder": "Family, Friends...", "noDebt": "No Debt", "investmentLabel": "Investment Value", "investmentHelper": "Total investment value.", "investmentPlaceholder": "E.g.: 5,000,000", "riskLabel": "Risk Profile", "riskHelper": "Your financial decision tendency?" },
+      "career": { "intro": "財務データを記録しました。キャリアと目標について話し合いましょう。", "followUps": { "karyawan": "どの会社で働いていますか？", "pengusaha": "事業名は何ですか？", "mahasiswa": "どの大学ですか？", "freelance": "どの分野で働いていますか？", "menganggur": "どのポジションを目指していますか？", "default": "もっと詳しく教えてください。" }, "educationQuestion": "最新の学歴は？", "careerGoalQuestion": "キャリア目標は？", "focusQuestion": "主な焦点は？", "hoursQuestion": "1日の実行容量は何時間ですか？", "lifeGoalQuestion": "人生最大の目標は？", "statusLabel": "Current Career Status", "statusHelper": "Choose what describes you.", "customStatusPlaceholder": "Or type another...", "companyLabel": "Company Name", "companyPlaceholder": "E.g.: Company ABC", "positionLabel": "Position", "positionPlaceholder": "E.g.: Marketing Staff", "businessNameLabel": "Business Name", "businessNamePlaceholder": "E.g.: Online Store", "businessFieldLabel": "What Field?", "businessFieldPlaceholder": "E.g.: F&B, Fashion", "universityLabel": "University", "universityPlaceholder": "E.g.: University Name", "majorLabel": "Major", "majorPlaceholder": "E.g.: Computer Science", "freelanceLabel": "Freelance Field", "freelanceHelper": "E.g.: Design on Fiverr", "freelancePlaceholder": "E.g.: Design on Fiverr", "desiredRoleLabel": "Target Position", "desiredRoleHelper": "E.g.: Digital marketing", "desiredRolePlaceholder": "E.g.: Digital marketing", "detailLabel": "Tell More", "detailPlaceholder": "E.g.: Building a project...", "educationPlaceholder": "Add education...", "careerGoalLabel": "Career Target", "careerGoalHelper": "What to achieve?", "careerGoalPlaceholder": "E.g.: Passive income", "focusLabel": "Main Focus", "focusHelper": "Concrete steps?", "focusPlaceholder": "E.g.: Build business", "hoursLabel": "Daily Capacity", "hoursHelper": "Hours per day?", "perDay": "/ day", "lifeGoalLabel": "Life Goal", "lifeGoalHelper": "Your biggest goal? (optional)", "lifeGoalPlaceholder": "E.g.: Financial freedom", "lifeGoalSkipped": "Life goal: — (skipped)" },
+      "living": { "intro": "もう少しで完了です！現在どこに住んでいますか？", "deviceQuestion": "どんなデバイスを使っていますか？", "brandQuestion": "デバイスのブランド/モデルは？", "mobilityQuestion": "所有しているモビリアセットは？", "completion": "完璧！すべてのデータが集まりました。", "livingLabel": "Living Status", "livingHelper": "Where do you live?", "deviceLabel": "Work Devices", "deviceHelper": "Select all devices.", "brandLabel": "Device Brand", "brandHelper": "Specific brand/model (optional)", "brandPlaceholder": "Brand/model", "mobilityLabel": "Mobility Assets", "mobilityHelper": "Select all assets.", "confirmNext": "Confirm & Continue" }
+    },
+    "presets": {
+      "skills": ["プログラミング", "グラフィックデザイン", "コピーライティング", "動画編集", "販売＆マーケティング", "データ分析", "教育/メンタリング", "Excel/管理", "パブリックスピーキング", "コンテンツクリエイター", "ソーシャルメディア", "写真", "インテリアデザイン", "料理", "音楽", "外国語", "カスタマーサービス", "会計", "ファッションデザイン", "アニメーション/イラスト"],
+      "hobbies": ["ゲーミング", "執筆/ブログ", "写真", "料理/ベーキング", "フィットネス/ジム", "アート/描画", "旅行", "音楽/歌唱", "読書", "ガーデニング", "DIY/クラフト", "ハイキング/アウトドア", "ダンス", "ポッドキャスト", "ストリーミング", "ファッション", "自動車", "コーディング/テック", "映画/シネマ", "スポーツ"],
+      "interests": ["オンラインビジネス", "人工知能（AI）", "個人ファイナンス", "Eコマース", "健康＆ウェルネス", "投資＆株式", "テクノロジー", "教育", "環境", "政治＆社会", "芸術＆文化", "子育て", "料理", "旅行", "ゲーミング業界", "メディア＆エンタメ"],
+      "formalStatus": ["学生", "会社員", "起業家", "フリーランス", "失業中 / 求職中"],
+      "workDevice": ["標準スマートフォン", "フラッグシップスマートフォン", "標準ラップトップ/PC", "高性能ラップトップ/PC", "カメラ"],
+      "mobility": ["自家用バイク", "自家用車", "公共交通/オンライン"],
+      "living": { "Tinggal Bersama Orang Tua/Keluarga": "親/家族と同居", "Sewa/Ngekost Bulanan": "月額賃貸/下宿", "Sewa/Kontrak Tahunan": "年間賃貸/契約", "Milik Sendiri (KPR)": "持ち家（ローン）", "Milik Sendiri (Lunas)": "持ち家（完済）" },
+      "freeHours": ["2時間未満", "3-4時間", "5-7時間", "8時間以上"],
+      "dependents": ["なし", "1-2人", "3人以上"],
+      "investmentExperience": ["未経験", "預金", "投資信託", "株式", "金", "暗号通貨", "P2Pレンディング", "不動産"],
+      "education": ["小/中/高校", "短期大学/専門", "学士", "修士", "博士", "コース/認定", "独学"],
+      "gender": ["男性", "女性"],
+      "insurance": ["公的医療保険", "公的＋民間保険", "民間保険", "保険なし"],
+      "challenges": ["貯金が難しい", "キャリア方向が不明確", "バーンアウト＆疲労", "規律不足", "時間不足", "リソース不足", "モチベーション不足"],
+      "ikigai": { "passion": ["創造性", "他者を助ける", "新しいことを学ぶ", "自立", "認められること", "自由", "生活のバランス"], "profession": ["一生懸命働く", "一貫性", "適応力", "協調性", "革新的", "問題解決", "リーダーシップ"], "mission": ["他者の力になる", "変化を生む", "生活の質を向上", "成長を促進", "価値を創造"], "vocation": ["メインキャリア", "サイドハッスル", "ボランティア", "メンタリング", "コミュニティ"] }
+    }
+  },
+  "welcome": {
+    "badge": "分析完了",
+    "metrics": { "income": "収入", "expenses": "支出", "savings": "貯蓄", "runway": "ランウェイ", "debt": "借金", "investment": "投資", "perMonth": "/月" },
+    "mentor": { "title": "AIメンターからのメッセージ", "diagnosis": "私が看到的", "solution": "プログラムの方向性" },
+    "tangga": "ステップ",
+    "insight": { "title": "AIインサイト" },
+    "cta": { "button": "Mentlifeダッシュボードを開く", "subtext": "データが保存され、ダッシュボードがプロフィールに合わせて調整されます。" },
+    "fallback": { "greeting": "こんにちは！Mentlifeへようこそ。", "diagnosis": "財務データを分析しました。財務基盤は段階的に強化する必要があります。", "solution": "最も基本的なステップから始めて、一つずつ構築していきます。每一步でお伴します。" }
+  },
+  "tangga": {
+    "levels": { "0": { "name": "収入スターター", "desc": "焦点：最初の収入源を確保。" }, "1": { "name": "借金ゼロ", "desc": "焦点：すべての消費者借金を積極的に返済。" }, "2": { "name": "緊急資金", "desc": "焦点：支出の3-6倍の緊急資金を構築。" }, "3": { "name": "投資20%", "desc": "焦点：収入の20%を投資に割り当て。" } },
+    "modes": { "survival": { "label": "サバイバルモード", "desc": "臨界的ランウェイ。キャッシュフローに絶対焦点。" }, "growth": { "label": "成長モード", "desc": "強固な基盤。拡大の時期。" }, "stability": { "label": "安定モード", "desc": "基盤がまだ具体的でない。緊急資金を強化。" } }
+  },
+  "dashboard": {
+      "tabs": { "home": "ホーム", "finance": "ファイナンス", "career": "キャリア", "profile": "プロフィール" },
+      "header": { "stageDebt": "ステージ：借金返済", "stageEmergency": "ステージ：緊急資金", "stageInvest": "ステージ：投資", "logout": "ログアウト" },
+      "home": { "greeting": "ようこそ \uD83D\uDC4B", "finance": "月間ファイナンス", "income": "収入", "expense": "支出", "remaining": "残り", "targetDebt": "目標：借金返済", "targetEmergency": "目標：緊急資金", "collected": "貯まった", "target": "目標", "achieved": "% 達成", "aiAdvice": "AIメンターのアドバイス", "sideHustle": "副収入の機会", "debtTip": "確保", "debtTip2": "/月で借金を早く返済。", "emergencyTip": "理想的な緊急資金 = 固定費の6倍。貯金を記録", "aiUnderstanding": "AIの理解とプロフィールの完全性", "completeProfile": "AIの推奨を100%正確にするためにプロフィールを完成させてください！", "complete": "完成", "dailyMissions": "デイリーミッション（{count}タスク）", "aiInsightToday": "今日のAIインサイト", "askMore": "もっと聞く", "ikigaiRecommendations": "あなたの生きがい推奨", "completeness": { "needsCompletion": "要完成", "moderatelyComplete": "中程度に完成", "veryComplete": "非常に完成", "perfect": "完璧" } },
+      "chat": { "title": "AIメンターに質問", "subtitle": "財政やキャリアの相談", "greeting": "こんにちは！あなたのAIメンターです", "greetingSub": "財政やキャリアについて何でも聞いてください！", "q1": "借金を早く返済するには？", "q2": "低収入での貯金のコツ", "q3": "サイドビジネスの始め方", "typing": "AIメンターが入力中...", "placeholder": "質問を入力..." },
+      "finance": { "summary": "概要", "analytics": "分析", "history": "履歴", "sisaKas": "残り現金", "danaDarurat": "緊急資金", "utangAktif": "アクティブ債務", "investasi": "投資", "levelTangga": "はしごレベル", "terkunci": "ロック", "pemasukan": "+ 収入", "pengeluaran": "- 支出", "alokasi": "\u21C4 割り当て", "anggaranBulanan": "月間予算", "anggaranSub": "月間割り当て規律", "danaGoal": "将来の財政目標", "danaGoalSub": "AIが監視する主要目標", "tambahAnggaran": "+ 予算追加", "tambahGoal": "+ 目標追加", "berulang": "繰り返し", "tidakBerulang": "1回", "aiReview": "CFO AI評価", "targetWaktu": "目標日", "sisa": "残り", "terpakai": "使用済み", "simpan": "保存", "batal": "キャンセル", "survivalMode": "サバイバルモード — 臨界状態", "survivalDesc": "焦点：変動費を削減し、すぐに収入力を向上。投資の余地はない。" },
+      "tasks": { "title": "タスクリスト", "subtitle": "日次計画を管理", "add": "+ 追加", "placeholder": "タスク名...", "addBtn": "タスク追加", "emptyTitle": "タスクなし", "emptySub": "\"+ 追加\"をクリックして最初のタスクを作成" },
+      "missions": { "recordToday": "今日の取引をすべて記録", "recordTodaySub": "AIが支出パターンを分析", "updateFinance": "財政状態を更新", "updateFinanceSub": "貯金、債務、緊急資金が変更？", "chatAI": "AIメンターと議論", "chatAISub": "戦略を聞くか評価を依頼" },
+      "career": { "level": "キャリアレベル", "priorityActions": "優先アクション", "ikigaiProfile": "あなたの生きがいプロフィール", "completeIkigai": "生きがいプロフィールを完成", "sideHustleOpportunities": "キャリア＆サイドハッスルの機会 — AI Curated", "taskTitle": "タスクタイトル", "category": "カテゴリー", "saving": "保存中...", "save": "保存", "emptyTaskDesc": "上のアクションボタンをクリックして直接追加" },
+      "profile": { "progress": "プロフィールの進捗", "step": "ステップ {current} / {total}: {name}", "selected": "選択済み", "personal": "個人", "career": "キャリア", "finance": "ファイナンス", "displayTheme": "表示テーマ", "language": "言語", "signOut": "サインアウト", "profile": "プロフィール", "statusNotSet": "ステータスが未設定", "aiInsights": "AIインサイト", "fillProfileForInsights": "AIインサイトを受け取るには、プロフィールをより詳しく記入してください。", "aiLearnsFromChat": "AIはチャットからあなたの状態とコミュニケーションスタイルを自動的に学習します。", "identityDemographics": "アイデンティティとデモグラフィック", "fullName": "氏名", "displayName": "表示名", "birthDate": "生年月日", "gender": "性別", "domicile": "居住地（都市と国）", "domicilePlaceholder": "例：東京、日本", "autoDetectLocation": "位置を自動検出", "livingSituation": "居住状況", "currentLiving": "現在の居住状況", "livingInfo": "💡 この情報は、AIが危機モードプロトコルを調整するために使用します。", "rentByChoice": "選択的賃貸", "rentByChoiceDesc": "長期的な賃貸を選択する場合は有効にしてください。", "dependents": "扶養とサンドイッチ世代", "maritalStatus": "婚姻状況", "single": "独身", "dating": "交際中", "married": "既婚", "previouslyMarried": "離別・死別", "sandwichGen": "サンドイッチ世代", "supportingFamily": "家族を扶養", "dependentsCount": "扶養人数", "physicalLimitations": "身体的制限", "haveLimitations": "身体的制限がありますか？", "limitationsDesc": "AIが身体的に負担の大きいタスクを推奨するのを防ぎます。", "limitationDetails": "制限の詳細", "limitationPlaceholder": "例：車椅子、喘息、膝の怪我...", "devicesMobility": "デバイスとモビリアイティ資産", "workDevices": "作業デバイス", "addCustomDevice": "カスタムデバイスを追加...", "mobilityAssets": "モビリアイティ資産", "addCustomAsset": "カスタム資産を追加...", "northStarGoals": "ノーザンスター目標", "lifeGoal": "人生の目標", "lifeGoalPlaceholder": "例：25歳までに自動操業するビジネスシステムを構築...", "lifeGoalInfo": "💡 これはあなたのコンパスです。AIメンターはガイダンスセッション中にこれを参照します。", "shortBio": "略歴", "bioPlaceholder": "簡単な経歴...", "saving": "保存中...", "saveUpdateAI": "保存してAIを更新", "profileUpdated": "プロフィールとAIパラメータが更新されました！", "locationFailed": "位置の検出に失敗しました。手動で入力してください。", "detailsContext": "詳細とコンテキスト", "education": "教育とトレーニング", "educationPlaceholder": "教育やトレーニングの焦点についてもっと教えてください。", "currentStatus": "現在のステータスとルーチン", "statusPlaceholder": "現在の仕事や日常のルーチンは何ですか？", "skills": "スキル", "skillsPlaceholder": "どのスキルを主な収入源にしたいですか？", "hobbies": "趣味", "hobbiesPlaceholder": "時間を忘れるほど夢中になる趣味や活動は何ですか？", "careerGoals": "キャリア目標と優先事項", "careerGoalsPlaceholder": "今後1〜3年のキャリア目標と優先事項を説明してください。", "cashflowRunway": "キャッシュフローとランウェイ", "monthlyIncome": "平均月収（Rp）", "monthlyExpenses": "固定/基本月額費用（Rp）", "liquidAssets": "流動資産（安全ネット）", "totalSavings": "現金/流動預金合計（Rp）", "otherAssetsLabel": "その他の現在の資産（オプション）", "debt": "負債", "hasDebt": "アクティブな負債/分割払いがありますか？", "debtSubtitle": "AIが財務リスクをマッピングできるように、アクティブな分割払いを詳細に記録します。", "highInterestDebt": "高金利負債", "highInterestPlaceholder": "Paylater/CC/オンラインローン", "productiveDebt": "資産/生産的負債", "productivePlaceholder": "住宅ローン/車両/事業ローン", "zeroInterestDebt": "無利息負債", "zeroInterestPlaceholder": "家族/友人", "investmentPortfolio": "投資ポートフォリオ", "hasInvestment": "投資ポートフォリオまたは将来の資産貯蓄がありますか？", "investmentSubtitle": "AIは防衛 vs 投資の配分に基づいてあなたの繁栄段階を検出します。", "totalInvestment": "推定投資総額（Rp）", "totalInvestmentPlaceholder": "すべての投資資産の合計", "ownedInstruments": "保有金融商品", "addCustomInstrument": "カスタム金融商品を追加...", "riskProfile": "リスクプロファイル", "riskProfileLabel": "投資リスクプロファイル", "conservative": "保守的（安全）", "moderate": "中庸（バランス）", "aggressive": "積極的（高リスク）", "instruments": ["株式", "投資信託", "金", "暗号通貨", "不動産", "債券/政府証券"] }
+    },
+  "analysis": { "phases": ["IDデータ分析中...", "スキル＆経験スキャン中...", "財務プロファイル評価中...", "キャリア目標分析中...", "優先戦略構築中...", "推奨最終化中..."],
+    "scanning": ["Scanning profile", "Analyzing finances", "Mapping skills", "Assessing career", "Building strategy", "Finalizing"],
+    "readyTitle": "Ready to Begin?", "readyDesc": "AI will analyze your data.", "startAnalysis": "Start AI Analysis", "analyzingTitle": "AI Analyzing", "analyzingDesc": "Recognizing potential",
+    "percentComplete": "% complete", "debtNone": "— (none)", "debtSkipped": "— (skipped)", "storySkipped": "Story: — (skipped)", "goalSkipped": "— (skipped)", "locationFail": "Location detection failed."
+  }
+}

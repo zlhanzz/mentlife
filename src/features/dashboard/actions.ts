@@ -1,7 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { getDecisionProjection, DecisionProjectionResult, extractDataFromChat, getAIRecommendations } from "@/services/ai";
+import { getDecisionProjection, DecisionProjectionResult, extractDataFromChat, AIRecommendations } from "@/services/ai";
+import { callGemini } from "@/services/ai-caller";
+import { getCachedRecommendations, invalidateAICache } from "@/services/ai-cache";
 import { evaluateFinancialLadder, getCurrencyConfig } from "@/services/financial-ladder";
 import { revalidatePath } from "next/cache";
 
@@ -169,6 +171,9 @@ export async function updateProfileAction(data: {
 
   if (finError) return { success: false, message: `Gagal menyimpan data keuangan: ${finError.message}` };
 
+  // Invalidate AI cache so recommendations regenerate with new profile data
+  await invalidateAICache(user.id, "recommendations");
+
   revalidatePath("/dashboard");
   return { success: true, message: "Profil berhasil diperbarui! AI akan menyesuaikan saran untuk Anda." };
 }
@@ -215,6 +220,9 @@ export async function updateSandboxAction(data: {
 
   if (error) return { success: false, message: `Gagal memperbarui sandbox: ${error.message}` };
 
+  // Sandbox changes affect AI recommendations context
+  await invalidateAICache(user.id, "recommendations");
+
   revalidatePath("/dashboard");
   return { success: true, message: "Sandbox parameter berhasil diperbarui." };
 }
@@ -243,6 +251,9 @@ export async function updateFinancialConditionAction(data: {
 
   const { error } = await supabase.from("financial_profiles").update(updatePayload).eq("id", user.id);
   if (error) return { success: false, message: `Gagal memperbarui: ${error.message}` };
+
+  // Financial changes must invalidate cached recommendations
+  await invalidateAICache(user.id, "recommendations");
 
   revalidatePath("/dashboard");
   return { success: true, message: "Kondisi finansial berhasil diperbarui." };
@@ -479,29 +490,20 @@ export async function sendChatMessageAction(
   await supabase.from("chat_messages").insert({ user_id: user.id, role: "user", content });
 
   try {
-    // 2. EXTRACTION AGENT (Background Learning)
-    // Di masa depan, ini bisa dipindah ke Edge Function / Queue untuk skalabilitas
-    const extracted = await extractDataFromChat(content, chatHistory.map(c => `${c.role}: ${c.content}`));
-    
-    if (extracted.users_core) {
-      await supabase.from("users_core").upsert({
-        id: user.id,
-        ...extracted.users_core,
-        updated_at: new Date().toISOString()
-      }, { onConflict: "id" });
-    }
-    
-    // Simpan Ikigai Vectors & Insights ke AI Memory
-    if (extracted.ikigai_vectors && extracted.ikigai_vectors.length > 0) {
-      for (const vec of extracted.ikigai_vectors) {
-        // Insert ke ai_memory untuk "Long-term Persistence"
-        await supabase.from("ai_memory").insert({
-          user_id: user.id,
-          context: vec.category,
-          insight: vec.content,
-          confidence: 0.9 // Default high confidence for explicit statements
-        });
-      }
+    // 2. TRIGGER INNGEST BACKGROUND EXTRACTION AGENT (Asynchronous Learning)
+    try {
+      const { inngest } = await import("@/lib/inngest");
+      await inngest.send({
+        name: "chat/message.sent",
+        data: {
+          userId: user.id,
+          content,
+          chatHistory: chatHistory.map(c => `${c.role}: ${c.content}`),
+        },
+      });
+      console.log("[Diagnostic] Berhasil mengirimkan event chat/message.sent ke Inngest queue.");
+    } catch (inngestErr: any) {
+      console.error("[Diagnostic] Gagal memicu event Inngest:", inngestErr.message || inngestErr);
     }
 
     // 3. MENTOR AGENT (Generate Personalized Reply)
@@ -522,21 +524,85 @@ export async function sendChatMessageAction(
       supabase.from("users_core").select("*").eq("id", user.id).single(),
     ]);
 
-    // Generate recommendations via 9Router logic (Pluggable)
-    // Di sini kita bisa menyisipkan 9Router API call di masa depan
-    const aiRecs = await getAIRecommendations(
-      { ...profileRes.data, background: profileRes.data?.background }, // Enrichment
-      financeRes.data,
-      { ...usersCoreRes.data, ai_memory: memories as any }
-    );
+    // Read cached recommendations from DB (0 tokens) instead of calling Gemini again
+    let aiRecs = await getCachedRecommendations<AIRecommendations>(user.id);
+    if (!aiRecs) {
+      aiRecs = {
+        targetGoal: "Kelola keuangan dengan bijak",
+        advice: "Fokus pada pengelolaan arus kas dan pengembangan skill.",
+        sideHustles: [],
+        dailyInsight: "",
+      };
+    }
 
-    // (Simulasi balasan - Di produksi ini akan memanggil LLM Mentor)
-    const reply = `Saya mengerti kondisi Anda. Berdasarkan riwayat kita, saya melihat Anda sedang fokus pada ${aiRecs.targetGoal}. ${aiRecs.advice}`;
+    // Build system instruction (Gemini caches it separately = more token-efficient)
+    const greetingName = usersCoreRes.data?.display_name || profileRes.data?.full_name || "Mentee";
+    const toneStyle = usersCoreRes.data?.ai_communication_style || "empatis_sabar";
+    let tonePrompt = "";
+    if (toneStyle === "empatis_sabar") {
+      tonePrompt = "Gunakan nada bicara yang ramah, hangat, penuh empati, memvalidasi perasaan pengguna, dan panggil dengan nama panggilan.";
+    } else if (toneStyle === "tegas_disiplin") {
+      tonePrompt = "Gunakan nada bicara yang tegas, dingin, langsung ke sasaran (to-the-point), fokus pada kedisiplinan dan pertanggungjawaban tindakan nyata, tanpa basa-basi.";
+    } else if (toneStyle === "logis_objektif") {
+      tonePrompt = "Gunakan nada bicara yang rasional, objektif, analitis, menyajikan data terstruktur, serta menghindari kalimat emosional.";
+    }
+
+    const systemPrompt = `Anda adalah Mentlife AI, seorang mentor keuangan (CFO) dan karir pribadi profesional tangguh yang objektif.
+Nama Sapaan Pengguna: ${greetingName}
+Gaya Komunikasi Pilihan Pengguna: ${toneStyle}.
+${tonePrompt}
+
+Kondisi Keuangan Saat Ini:
+- Sisa Kas / Likuid: Rp${(financeRes.data?.liquid_savings ?? 0).toLocaleString()}
+- Pendapatan Bulanan: Rp${(financeRes.data?.monthly_income ?? 0).toLocaleString()}
+- Pengeluaran Tetap: Rp${(financeRes.data?.fixed_expenses ?? 0).toLocaleString()}
+- Total Utang: Rp${(financeRes.data?.total_debt ?? 0).toLocaleString()}
+- Dana Darurat Saat Ini: Rp${(financeRes.data?.emergency_fund_current ?? 0).toLocaleString()}
+- Level Tangga Finansial: ${financeRes.data?.current_stage || "Tangga 1 (Survival)"}
+
+Konteks Aset & Rencana Karir:
+- Target Karir: ${profileRes.data?.career_goal || "Tidak ditentukan"}
+- Keahlian: ${profileRes.data?.skills?.join(", ") || "Tidak ditentukan"}
+- Hambatan Terbesar: ${usersCoreRes.data?.current_roadblock || "Tidak ditentukan"}
+- Target Goal Finansial Terkini: ${aiRecs.targetGoal}
+- Rekomendasi Terakhir AI (Gunakan ini hanya sebagai panduan konteks, JANGAN jadikan ini sebagai jawaban template kaku): ${aiRecs.advice}
+
+Memori Jangka Panjang Pengguna:
+${memoryContext || "Tidak ada memori tercatat"}
+
+Aturan Khusus Diskusi:
+1. Jawablah langsung pertanyaan spesifik dari pesan terakhir pengguna. Jangan hanya mengulang kalimat rekomendasi dari dashboard.
+2. Berikan respons ringkas (maksimal 2-3 paragraf), tajam, solutif, terstruktur dengan poin-poin jika diperlukan.`;
+
+    // Sliding window: keep only last 6 messages to limit token usage
+    const SLIDING_WINDOW = 6;
+    const windowedHistory = chatHistory.slice(-SLIDING_WINDOW).map(c => ({
+      role: c.role as "user" | "assistant",
+      text: c.content,
+    }));
+
+    let reply = "";
+    try {
+      const result = await callGemini({
+        prompt: content,
+        systemInstruction: systemPrompt,
+        maxTokens: 1024,  // thinking model overhead
+        chatHistory: windowedHistory,
+      }, { userId: user.id, callType: "chat_reply" });
+
+      reply = result.text;
+      console.log(`[AI] Chat reply generated (${result.tokensUsed} tokens)`);
+    } catch (geminiError: any) {
+      console.error("[AI] Chat Gemini call failed:", geminiError.message || geminiError);
+    }
+
+    if (!reply) {
+      reply = `Saya mengerti kondisi Anda, ${greetingName}. Berdasarkan analisis data, mari fokus pada target jangka pendek kita: ${aiRecs.targetGoal}. ${aiRecs.advice}`;
+    }
 
     await supabase.from("chat_messages").insert({ user_id: user.id, role: "assistant", content: reply });
     await awardXp(user.id, 5);
 
-    revalidatePath("/dashboard");
     return { success: true, message: "Pesan terkirim.", data: { reply } };
   } catch (err: any) {
     console.error("Chat Error:", err);
@@ -643,7 +709,6 @@ export async function addTaskAction(title: string, dueDate: string, category: st
     return { success: false, message: `Gagal menambahkan tugas: ${error.message}` };
   }
 
-  revalidatePath("/dashboard");
   return { success: true, message: "Tugas berhasil ditambahkan." };
 }
 
@@ -675,7 +740,6 @@ export async function toggleTaskAction(taskId: string, currentCompleted: boolean
     await awardXp(user.id, xpAwarded);
   }
 
-  revalidatePath("/dashboard");
   return { 
     success: true, 
     message: newCompleted ? `Tugas selesai! (+${xpAwarded} XP)` : "Tugas diaktifkan kembali.",
@@ -702,6 +766,5 @@ export async function deleteTaskAction(taskId: string): Promise<ActionResponse> 
     return { success: false, message: `Gagal menghapus tugas: ${error.message}` };
   }
 
-  revalidatePath("/dashboard");
   return { success: true, message: "Tugas berhasil dihapus." };
 }

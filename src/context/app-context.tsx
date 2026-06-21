@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useCallback, useEffect, useMemo, useState, ReactNode } from "react";
 
 type Theme = "dark" | "theme-light" | "theme-ocean" | "theme-forest" | "theme-sunset";
 type Lang = "id" | "en";
@@ -86,6 +86,33 @@ const translations: Record<Lang, Record<string, string>> = {
     "settings.theme.sunset": "🌅 Sunset Orange",
     "settings.lang.id": "🇮🇩 Indonesia",
     "settings.lang.en": "🇬🇧 English",
+    // Finance Dashboard
+    "finance.summary": "Ringkasan",
+    "finance.analytics": "Analitik",
+    "finance.history": "Riwayat",
+    "finance.sisaKas": "Sisa Kas",
+    "finance.danaDarurat": "Dana Darurat",
+    "finance.utangAktif": "Utang Aktif",
+    "finance.investasi": "Investasi",
+    "finance.levelTangga": "Level Tangga",
+    "finance.terkunci": "TERKUNCI",
+    "finance.pemasukan": "+ Pemasukan",
+    "finance.pengeluaran": "- Pengeluaran",
+    "finance.alokasi": "⇄ Alokasi",
+    "finance.anggaranBulanan": "Anggaran Bulanan",
+    "finance.anggaranSub": "Disiplin alokasi bulanan Anda",
+    "finance.danaGoal": "Dana Goal Masa Depan",
+    "finance.danaGoalSub": "Tujuan besar yang dipantau AI",
+    "finance.tambahAnggaran": "+ Tambah Anggaran",
+    "finance.tambahGoal": "+ Tambah Goal",
+    "finance.berulang": "Berulang",
+    "finance.tidakBerulang": "Satu Kali",
+    "finance.aiReview": "Evaluasi CFO AI",
+    "finance.targetWaktu": "Target Waktu",
+    "finance.sisa": "Sisa",
+    "finance.terpakai": "Terpakai",
+    "finance.simpan": "Simpan",
+    "finance.batal": "Batal",
   },
   en: {
     "header.stage.debt": "Stage: Pay Off Debt",
@@ -152,6 +179,33 @@ const translations: Record<Lang, Record<string, string>> = {
     "settings.theme.sunset": "🌅 Sunset Orange",
     "settings.lang.id": "🇮🇩 Indonesian",
     "settings.lang.en": "🇬🇧 English",
+    // Finance Dashboard
+    "finance.summary": "Summary",
+    "finance.analytics": "Analytics",
+    "finance.history": "History",
+    "finance.sisaKas": "Remaining Cash",
+    "finance.danaDarurat": "Emergency Fund",
+    "finance.utangAktif": "Active Debt",
+    "finance.investasi": "Investment",
+    "finance.levelTangga": "Ladder Level",
+    "finance.terkunci": "LOCKED",
+    "finance.pemasukan": "+ Income",
+    "finance.pengeluaran": "- Expense",
+    "finance.alokasi": "⇄ Allocate",
+    "finance.anggaranBulanan": "Monthly Budgets",
+    "finance.anggaranSub": "Your monthly allocation discipline",
+    "finance.danaGoal": "Future Financial Goals",
+    "finance.danaGoalSub": "Major targets monitored by AI",
+    "finance.tambahAnggaran": "+ Add Budget",
+    "finance.tambahGoal": "+ Add Goal",
+    "finance.berulang": "Recurring",
+    "finance.tidakBerulang": "One-time",
+    "finance.aiReview": "CFO AI Evaluation",
+    "finance.targetWaktu": "Target Date",
+    "finance.sisa": "Remaining",
+    "finance.terpakai": "Spent",
+    "finance.simpan": "Save",
+    "finance.batal": "Cancel",
   },
 };
 
@@ -176,22 +230,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     html.classList.add(t);
   };
 
-  const setTheme = (t: Theme) => {
+  const setTheme = useCallback((t: Theme) => {
     setThemeState(t);
     localStorage.setItem("mentlife-theme", t);
     applyTheme(t);
-  };
+  }, []);
 
-  const setLang = (l: Lang) => {
+  const setLang = useCallback((l: Lang) => {
     setLangState(l);
     localStorage.setItem("mentlife-lang", l);
-  };
+  }, []);
 
-  const t = (key: string): string => {
+  const t = useCallback((key: string): string => {
     return translations[lang][key] ?? translations["id"][key] ?? key;
-  };
+  }, [lang]);
 
-  return <AppContext.Provider value={{ theme, setTheme, lang, setLang, t }}>{children}</AppContext.Provider>;
+  const value = useMemo(() => ({ theme, setTheme, lang, setLang, t }), [theme, setTheme, lang, setLang, t]);
+
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
 export function useApp() {

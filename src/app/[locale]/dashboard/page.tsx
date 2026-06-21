@@ -1,29 +1,33 @@
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { redirect } from "@/navigation";
 import { getAIRecommendations } from "@/services/ai";
 import DashboardClient from "./dashboard-client";
 
-export default async function DashboardPage() {
+export default async function DashboardPage(props: { params: Promise<{ locale: string }> }) {
+  const { locale } = await props.params;
   const supabase = await createClient();
 
   // 1. Get current authenticated user — only hard redirect if NOT authenticated
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    redirect("/login");
+    redirect({ href: "/login", locale });
+    return;
   }
+
+  const u = user;
 
   // 2. Fetch profile — use defaults if missing (no redirect)
   const { data: profileData } = await supabase
     .from("profiles")
     .select("*")
-    .eq("id", user.id)
+    .eq("id", u.id)
     .single();
 
   // If no profile row, create a minimal one
   if (!profileData) {
     await supabase.from("profiles").upsert({
-      id: user.id,
-      full_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "Mentee",
+      id: u.id,
+      full_name: u.user_metadata?.full_name || u.email?.split("@")[0] || "Mentee",
       skills: [],
       experience: "",
       hobbies: [],
@@ -43,7 +47,7 @@ export default async function DashboardPage() {
     (!profileData.career_goal && (!profileData.skills || profileData.skills.length === 0));
 
   if (needsOnboarding) {
-    redirect("/onboarding");
+    redirect({ href: "/onboarding", locale });
   }
 
   const profile = profileData!;
@@ -53,14 +57,14 @@ export default async function DashboardPage() {
   const { data: financeData } = await supabase
     .from("financial_profiles")
     .select("*")
-    .eq("id", user.id)
+    .eq("id", u.id)
     .single();
 
   if (!financeData) {
     const { data: newFinance } = await supabase
       .from("financial_profiles")
       .upsert({
-        id: user.id,
+        id: u.id,
         monthly_income: 0,
         fixed_expenses: 0,
         total_debt: 0,
@@ -107,7 +111,7 @@ export default async function DashboardPage() {
   const { data: transactions } = await supabase
     .from("financial_transactions")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", u.id)
     .order("created_at", { ascending: false })
     .limit(20);
 
@@ -115,21 +119,21 @@ export default async function DashboardPage() {
   const { data: chats } = await supabase
     .from("chat_messages")
     .select("role, content")
-    .eq("user_id", user.id)
+    .eq("user_id", u.id)
     .order("created_at", { ascending: true });
 
   // 6. Fetch decision projections (graceful fallback)
   const { data: projections } = await supabase
     .from("decision_projections")
     .select("id, title, description, horizon_years, projection_output")
-    .eq("user_id", user.id)
+    .eq("user_id", u.id)
     .order("created_at", { ascending: false });
 
   // 7. Fetch tasks (graceful fallback)
   const { data: tasks } = await supabase
     .from("tasks")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", u.id)
     .order("completed", { ascending: true })
     .order("created_at", { ascending: false });
 
@@ -138,7 +142,7 @@ export default async function DashboardPage() {
   const { data: usersCoreData } = await supabase
     .from("users_core")
     .select("*")
-    .eq("id", user.id)
+    .eq("id", u.id)
     .single();
 
   if (!usersCoreData) {
@@ -146,7 +150,7 @@ export default async function DashboardPage() {
       const { data: newUc } = await supabase
         .from("users_core")
         .upsert({
-          id: user.id,
+          id: u.id,
           formal_status: "Karyawan",
           primary_focus: "Meniti Karir",
           daily_free_hours: 2,
@@ -174,7 +178,7 @@ export default async function DashboardPage() {
   }
 
   const safeUsersCore = {
-    id: user.id,
+    id: u.id,
     formal_status: (usersCore?.formal_status || "Karyawan") as 'Mahasiswa' | 'Karyawan' | 'Pengusaha' | 'Freelancer' | 'Menganggur',
     primary_focus: usersCore?.primary_focus || "",
     daily_free_hours: Number(usersCore?.daily_free_hours) || 2,
@@ -249,7 +253,7 @@ export default async function DashboardPage() {
         north_star_story: profile.north_star_story || "",
       }}
       finance={{
-        id: safeFinance.id || user.id,
+        id: safeFinance.id || u.id,
         monthly_income: Number(safeFinance.monthly_income) || 0,
         fixed_expenses: Number(safeFinance.fixed_expenses) || 0,
         total_debt: Number(safeFinance.total_debt) || 0,
